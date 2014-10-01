@@ -230,3 +230,6 @@ $RECYCLE.BIN/
 *.msp
 *.pyproj
 *.sln
+
+# VirtualEnv
+DICE/
