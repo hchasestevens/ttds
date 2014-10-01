@@ -1,0 +1,32 @@
+1 What articles exist which deal with TSS (Time Sharing System), an operating system for IBM computers?
+2 Intermediate languages used in construction of multi-targeted compilers; TCOLL
+3 I'd like papers on design and implementation of editing interfaces, window-managers, command interpreters, etc. The essential issues are human interface design, with views on improvements to user efficiency, effectiveness and satisfaction.
+4 I am interested in distributed algorithms - concurrent programs in which processes communicate and synchronize by using message passing. Areas of particular interest include fault-tolerance and techniques for understanding the correctness of these algorithms.
+5 Security considerations in local networks, network operating systems, and distributed systems.
+6 SETL, Very High Level Languages
+7 code optimization for space efficiency
+8 Find all discussions of horizontal microcode optimization with special emphasis on optimization of loops and global optimization.
+9 Optimization of intermediate and machine code
+10 Parallel algorithms
+11 computational complexity, intractability, class-complete reductions, algorithms and efficiency
+12 Distributed computing structures and algorithms
+13 Performance evaluation and modelling of computer systems
+14 Memory management aspects of operating systems
+15 Number-theoretic algorithms, especially involving prime number series, sieves, and Chinese Remainder theorem.
+16 I'd like to find articles describing the use of singular value decomposition in digital image processing. Applications include finding approximations to the original image and restoring images that are subject to noise. An article on the subject is H. Andrews and C. Patterson "Outer product expansions and their uses in digital image processing", American Mathematical Andrews, H. Patterson, C.
+17 Articles about the sensitivity of the eigenvalue decomposition of real matrices, in particular, zero-one matrices. I'm especially interested in the separation of eigenspaces corresponding to distinct eigenvalues. Articles on the subject: C. Davis and W. Kahn, "The rotation of eigenvectors by a permutation:, SIAM J. Numerical Analysis, vol. 7, no. 1 (1970); G. Stewart, "Error bounds for approximate invariant subspaces of closed linear operators", SIAM J. Numerical Analysis., Vol. 8, no. 4 (1971). Davis, C. Kahn, W. Stewart, G.
+18 Probabilistic algorithms especially those dealing with algebraic and symbolic manipulation. Some examples: Rabiin, "Probabilistic algorithm on finite field", SIAM Waztch, "Probabilistic testing of polynomial identities", SIAM Rabin,M.
+19 Articles describing the relationship between data types and concurrency (e.g. what is the type of a process? when is a synchronization attempt between two processes "type correct"? in a message-passing system is there any notion of the types of messages?--i.e. any way to check that the sender of the message and the receiver are both treating the bit stream as some particular type)
+20 What does type compatibility mean in languages that allow programmer defined types? (You might want to restrict this to "extensible" languages that allow definition of abstract data types or programmer-supplied definitions of operators like *, +.)
+21 Theory of distributed systems and databases. Subtopics of special interest include reliability and fault-tolerance in distributed systems, atomicity, distributed transactions, synchronization algorithms, resource allocation; lower bounds and models for asynchronous parallel systems. Also theory of communicating processes and protocols. P. Box 2158 Yale Station, New Haven, Conn. 06520
+22 Analysis and perception of shape by humans and computers. Shape descriptions, shape recognition by computer. Two-dimensional shapes. Measures of circularity. Shape matching.
+23 The use of operations research models to optimize information system performance. This includes fine tuning decisions such as secondary index selection, file reorganization, and distributed databases.
+24 The use of Bayesian decision models to optimize information retrieval system performance. This includes stopping rules to determine when a user should cease scanning the output of a retrieval search.
+25 The role of information retrieval in knowledge based systems (i.e., expert systems).
+26 Parallel processors and paging algorithms
+27 mathematical induction, group theory, integers modulo m, probability, binomial coefficients, binomial theorem, homomorphism, morphism, transitivity, relations, relation matrix. Syracuse University, 313 Link Hall, Syracuse, N. 13210
+28 Anything dealing with star height of regular languages or regular expressions or regular events.
+29 Abstracts of articles: J. Backus, "Can programming be liberated from the Von Neumann style? A functional style and its algebra of programs", CACM 21 Re Millo, R. Lipton, A. Perlis, letter to ACM Forum, CACM 22 (1979), 629-630 Backus, J. De Millo, R. Lipton, R. Perlis, A.
+30 Dictionary construction and accessing methods for fast retrieval of words or lexical items or morphologically related information. Hashing or indexing methods are usually applied to English spelling or natural language problems.
+31 Information retrieval articles by Gerard Salton or others about clustering, bibliographic coupling, use of citations or co-citations, the vector space model, Boolean search methods using inverted files, feedback, etc. Salton, G.
+32 Algorithms for parallel computation, and especially comparisons between parallel and sequential algorithms.

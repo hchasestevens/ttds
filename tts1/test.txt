@@ -1,0 +1,32 @@
+1 I am interested in articles written either by Prieve or Udo Pooch Prieve, B. Pooch, U.
+2 I'm interested in mechanisms for communicating between disjoint processes, possibly, but not exclusively, in a distributed environment. I would rather see descriptions of complete mechanisms, with or without implementations, as opposed to theoretical work on the abstract problem. Remote procedure calls and message-passing are examples of my interests.
+3 Interested in articles on robotics, motion planning particularly the geometric and combinatorial aspects. We are not interested in the dynamics of arm motion.
+4 Addressing schemes for resources in networks; resource addressing in network operating systems
+5 Parallel languages; languages for parallel computation
+6 portable operating systems
+7 find all discussions of optimal implementations of sort algorithms for database management applications
+8 find all descriptions of file handling in operating systems based on multiple processes and message passing.
+9 Languages and compilers for parallel processors, especially highly horizontal microcoded machines; code compaction
+10 Graph theoretic algorithms applicable to sparse matrices
+11 I am interested in hidden-line and hidden-surface algorithms for cylinders, toroids, spheres, and cones. This is a rather specialized topic in computer graphics.
+12 Applied stochastic processes
+13 Concurrency control mechanisms in operating systems
+14 Any information on packet radio networks. Of particular interest are algorithms for packet routing, and for dealing with changes in network topography. I am not interested in the hardware used in the network.
+15 Articles on text formatting systems, including "what you see is what you get" systems. Examples: t/nroff, scribe, bravo.
+16 I'd like to find articles describing graph algorithms that are based on the eigenvalue decomposition (or singular value decomposition) of the ajacency matrix for the graph. I'm especially interested in any heuristic algorithms for graph coloring and graph isomorphism using this method.
+17 Currently interested in isolation of root of polynomial; there is an old more recent material. Heindel, L.
+18 Fast algorithm for context-free language recognition or parsing
+19 What is the type of a module? (I don't want the entire literature on Abstract Data Types here, but I'm not sure how to phrase this to avoid it. I'm interested in questions about how one can check that a module "matches" contexts in which it is used.)
+20 List all articles dealing with data types in the following languages: that are referenced frequently in papers on the above languages (e.g. catch any languages with interesting type structures that I might have missed).
+21 Computer performance evaluation techniques using pattern recognition and clustering. LA 70803
+22 Texture analysis by computer. Digitized texture analysis. Texture synthesis. Perception of texture.
+23 The application of fuzzy subset theory to clustering and information retrieval problems. This includes performance evaluation and automatic indexing considerations.
+24 The use of computer science principles (e.g. data structures, numerical methods) in generating optimization (e.g. linear programming) algorithms. This includes issues of the Khachian (Russian, ellipsoidal) algorithm and complexity of such algorithms.
+25 Parallel processors in information retrieval
+26 Modelling and simulation in agricultural ecosystems.
+27 Semantics of programming languages, including abstract specifications of data types, denotational semantics, and proofs of correctness. Hoare, A. Dijkstra, E. University of Massachusetts, Amherst, MA 01003
+28 Articles relation the algebraic theory of semigroups and monoids to the study of automata and regular languages.
+29 Algorithms or statistical packages for ANOVA, regression using least squares or generalized linear models. System design, capabilities, statistical formula are of interest. Student's t test, Wilcoxon and sign tests, multivariate and univariate components can be included.
+30 Hardware and software relating to database management systems. Database packages, back end computers, special associative hardware with microcomputers attached to disk heads or things like RAP, relational or network (CODASYL) or hierarchical models, systems like SYSTEM R, IMS, ADABAS, TOTAL, etc.
+31 Results relating parallel complexity theory (both for PRAM's and uniform circuits).
+32 List all articles on EL1 and ECL (EL1 may be given as EL/1; I don't remember how they did it.
