@@ -14,3 +14,5 @@ task. You cannot compute MAP yourself (we are not providing relevance
 judgements for the test set), but assume that MAP for the training queries will
 be representative of the MAP for the testing queries.
 """
+
+OUTPUT_FNAME = "best.top"
