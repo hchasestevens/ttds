@@ -41,14 +41,14 @@ class Vector(collections.namedtuple("Vector", 'id_ vector')):
         return super(Vector, cls).__new__(
             cls,
             tokenized_line[0],
-            counter(tokenized_line[1:])
+            tokenized_line[1:]
         )
 
     def __len__(self):
         try:
             return self._len
         except Exception:
-            self._len = sum(self.vector.itervalues())
+            self._len = len(self.vector)
         return self._len
 
     def idf(self, dtf, doc_avg_k, num_docs, df, word):
@@ -60,17 +60,17 @@ class Vector(collections.namedtuple("Vector", 'id_ vector')):
 
 
 def tf(word, vector):
-    return vector.vector[word]
+    return float(vector.vector.count(word))
 
 
 def df_factory(collection):
     @cached_by_value
     def df(word):
-        return sum(
-            document.vector[word]
+        return float(sum(
+            document.vector.count(word)
             for document in
             collection
-        )
+        ))
     return df
 
 
@@ -105,7 +105,7 @@ def main():
 
     tf_idf = tf_idf_factory(df, avg_document_len, len(documents))
 
-    output_gen = (
+    output = (
         (query.id_,
          document.id_,
          tf_idf(query, document)
@@ -116,10 +116,11 @@ def main():
         documents
     )
 
-    output = []
-    for i, item in enumerate(output_gen):
+    output_ = []
+    for i, item in enumerate(output):
         print float(i) / (len(queries) * len(documents)), '\b'*100,
-        output.append(item)
+        output_.append(item)
+    output = output_
 
     with open(OUTPUT_FNAME, 'w') as f:
         f.write('\n'.join(
