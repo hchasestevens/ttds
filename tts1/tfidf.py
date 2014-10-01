@@ -44,18 +44,17 @@ class Vector(collections.namedtuple("Vector", 'id_ vector')):
             counter(tokenized_line[1:])
         )
 
-    @cached_by_id
     def __len__(self):
-        return sum(self.vector.itervalues())
+        if not hasattr(self, '_len'):
+            self._len = sum(self.vector.itervalues())
+        return self._len
 
-    @cached_by_id
     def idf(self, dtf, doc_avg_k, num_docs, df, word):
         if not hasattr(self, '_idf'):
             self._idf = (dtf / (dtf + (doc_avg_k * len(self)))) * math.log(num_docs / df(word))
         return self._idf
 
 
-@cached_by_id  # id should remain constant for short strings
 def tf(word, vector):
     return vector.vector[word]
 
