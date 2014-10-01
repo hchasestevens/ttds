@@ -45,12 +45,16 @@ class Vector(collections.namedtuple("Vector", 'id_ vector')):
         )
 
     def __len__(self):
-        if not hasattr(self, '_len'):
+        try:
+            return self._len
+        except Exception:
             self._len = sum(self.vector.itervalues())
         return self._len
 
     def idf(self, dtf, doc_avg_k, num_docs, df, word):
-        if not hasattr(self, '_idf'):
+        try:
+            return self._idf
+        except Exception:
             self._idf = (dtf / (dtf + (doc_avg_k * len(self)))) * math.log(num_docs / df(word))
         return self._idf
 
