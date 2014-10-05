@@ -54,7 +54,7 @@ def tf(word, vector):
     return float(vector.tokens.count(word))
 
 
-def tokenize(line):
+def tokenize(line, query=False):
     base_tokens = [
         token
         for token in 
@@ -78,9 +78,16 @@ def tokenize(line):
         re.findall("[A-Za-z0-9\.\-\_\/]+", line)
         if not token in tokens
     ]
+    stripped_extended_tokens = (
+        ''.join(re.findall("[A-Za-z0-9]+", token))
+        for token in
+        extended_tokens
+    )
     tokens.extend(morpheme_4grams)
     tokens.extend(word_bigrams)
     tokens.extend(extended_tokens)
+    if query:
+        tokens.extend(stripped_extended_tokens)
     return tokens
 
 
@@ -92,9 +99,9 @@ def main(query_fname, output_fname):
 
     print "Tokenizing queries, documents"
     queries, documents = [
-        [Tokens(tokenize(line.lower())) for line in lines]
-        for lines in 
-        (query_lines, document_lines)
+        [Tokens(tokenize(line.lower(), isquery)) for line in lines]
+        for isquery, lines in 
+        zip((True, False), (query_lines, document_lines))
     ]
 
     print "Calculating DFs"
