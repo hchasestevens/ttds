@@ -71,9 +71,15 @@ def tokenize(line):
         re.findall("[A-Za-z0-9\.\-\_\/]+", line)
         if not token in tokens
     ]
+    stripped_extended_tokens = [
+        ''.join(re.findall("[A-Za-z0-9]+", token))
+        for token in
+        extended_tokens
+    ]
     tokens.extend(morpheme_4grams)
     tokens.extend(word_bigrams)
     tokens.extend(extended_tokens)
+    tokens.extend(stripped_extended_tokens)
     return tokens
 
 
