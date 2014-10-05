@@ -55,7 +55,7 @@ class Vector(collections.namedtuple("Vector", 'id_ vector')):
         try:
             return self._idf
         except Exception:
-            self._idf = (dtf / (dtf + (doc_avg_k * len(self)))) * math.log(float(num_docs) / df(word))
+            self._idf = (float(dtf) / (dtf + (doc_avg_k * len(self)))) * math.log(float(num_docs) / df(word))
         return self._idf
 
 
