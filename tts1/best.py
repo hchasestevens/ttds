@@ -40,7 +40,7 @@ class Tokens(collections.namedtuple("Vector", 'id_ tokens')):
 
 def ngrams(n, list_, delimiter=''):
     streams = (list_[i:] for i in xrange(n))
-    return [''.join(ngram) for ngram in itertools.izip(*streams)]
+    return [delimiter.join(ngram) for ngram in itertools.izip(*streams)]
 
 
 def tf(word, vector):
@@ -64,7 +64,6 @@ def tokenize(line):
         for token in
         tokens
     ]))
-    tokens.extend(ngrams(3, base_tokens, ' '))
     return tokens
 
 
