@@ -65,8 +65,15 @@ def tokenize(line):
         tokens
     ])
     word_bigrams = ngrams(2, tokens, '|')
+    extended_tokens = [
+        token
+        for token in
+        re.findall("[A-Za-z0-9\.\-\_\/]+", line)
+        if not token in tokens
+    ]
     tokens.extend(morpheme_4grams)
     tokens.extend(word_bigrams)
+    tokens.extend(extended_tokens)
     return tokens
 
 
