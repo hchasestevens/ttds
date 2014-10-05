@@ -54,6 +54,7 @@ def tokenize(line):
         re.findall("[A-Za-z0-9]+", line)
         if not token in STOPWORDS
     ]
+    tokens.extend(ngrams(2, tokens))
     return tokens
 
 
