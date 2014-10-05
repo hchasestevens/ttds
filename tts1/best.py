@@ -64,7 +64,7 @@ def tokenize(line):
         for token in
         tokens
     ]))
-    tokens.extend(ngrams(2, base_tokens))
+    tokens.extend(ngrams(3, base_tokens, ' '))
     return tokens
 
 
