@@ -67,7 +67,7 @@ def df_factory(collection):
     @cached_by_value
     def df(word):
         return float(sum(
-            document.vector.count(word)
+            word in document.vector
             for document in
             collection
         ))
