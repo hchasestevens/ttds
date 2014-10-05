@@ -48,10 +48,15 @@ def tf(word, vector):
 
 
 def tokenize(line):
+    base_tokens = [
+        token 
+        for token in
+        re.findall("[A-Za-z0-9]+", line)
+    ]
     tokens = [
         token
         for token in 
-        re.findall("[A-Za-z0-9]+", line)
+        base_tokens
         if not token in STOPWORDS
     ]
     tokens.extend(itertools.chain(*[
@@ -59,6 +64,7 @@ def tokenize(line):
         for token in
         tokens
     ]))
+    tokens.extend(ngrams(2, base_tokens))
     return tokens
 
 
