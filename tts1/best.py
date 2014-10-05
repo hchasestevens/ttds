@@ -18,6 +18,7 @@ import collections
 import re
 import itertools
 import math
+import copy
 from nltk.corpus import stopwords
 STOPWORDS = stopwords.words('english')
 
@@ -36,6 +37,12 @@ class Tokens(collections.namedtuple("Vector", 'id_ tokens')):
         except Exception:
             self._len = len(self.tokens)
         return self._len
+
+    def __contains__(self, token):
+        return token in self.tokens
+
+    def __hash__(self):
+        return int(self.id_)
 
 
 def ngrams(n, list_, delimiter=''):
@@ -83,12 +90,14 @@ def main(query_fname, output_fname):
     with open('docs.txt') as f:
         document_lines = f.readlines()
 
+    print "Tokenizing queries, documents"
     queries, documents = [
         [Tokens(tokenize(line.lower())) for line in lines]
         for lines in 
         (query_lines, document_lines)
     ]
 
+    print "Calculating DFs"
     df = collections.defaultdict(float)
     for document in documents:
         for token in set(document.tokens):
@@ -96,11 +105,22 @@ def main(query_fname, output_fname):
 
     avg_document_len = sum(len(document) for document in documents) / float(len(documents))
 
+    print "Compiling document_references"
+    document_references = collections.defaultdict(list)
+    for referenced in documents:
+        for referer in documents:
+            if referenced == referer: continue
+            if referenced.id_ in referer:
+                document_references[referenced].append(referer)
+                # document_references[A] -> returns all papers that reference A
+
+    print "Performing IR"
     output = []
     k = 2.
     doc_avg_k = k / avg_document_len
     for i, query in enumerate(queries):
         print float(i) / len(queries), '\b'*100,
+        query_scores = {}
         for document in documents:
             tfidf_score = 0
             for word in set(query.tokens) & set(document.tokens):
@@ -111,7 +131,15 @@ def main(query_fname, output_fname):
                 temp_score *= doc_tf / (doc_tf + (doc_avg_k * len(document)))
 
                 tfidf_score += temp_score
-            output.append((query.id_, document.id_, tfidf_score))
+            query_scores[document] = tfidf_score
+
+        original_query_scores = copy.copy(query_scores)
+        for document in documents:
+            for referer in document_references[document]:
+                query_scores[document] += 0.01 * original_query_scores[referer]
+        
+        for document in documents:
+            output.append((query.id_, document.id_, query_scores[document]))
 
     with open(output_fname, 'w') as f:
         f.write('\n'.join(
