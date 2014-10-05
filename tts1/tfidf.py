@@ -5,9 +5,7 @@ should be computed from docs.txt. Tokenize exactly as in task 1. Save the
 results in a file called tfidf.top.
 """
 import collections
-import functools
 import re
-import itertools
 import math
 
 
