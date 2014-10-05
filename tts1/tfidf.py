@@ -14,28 +14,6 @@ import math
 OUTPUT_FNAME = "tfidf.top"
 
 
-def cached_by_func(func, f):
-    cache = {}
-    def new_f(*args, **kwargs):
-        key = tuple(map(func, args)), tuple(map(func, kwargs))
-        result = cache.get(key)
-        if result is None:
-            result = f(*args, **kwargs)
-            cache[key] = result
-        return result
-    return new_f
-
-cached_by_id = functools.partial(cached_by_func, id)
-cached_by_value = functools.partial(cached_by_func, lambda x: x)
-
-
-def counter(tokens):
-    d = collections.defaultdict(float)
-    for token in tokens:
-        d[token] += 1
-    return d
-
-
 class Tokens(collections.namedtuple("Vector", 'id_ tokens')):
     def __new__(cls, tokenized_line):
         return super(Tokens, cls).__new__(
