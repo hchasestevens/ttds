@@ -66,7 +66,7 @@ def tokenize(line):
     ])
     word_bigrams = ngrams(2, tokens, '|')
     tokens.extend(morpheme_4grams)
-    tokens.extend(word_bigrams)
+    #tokens.extend(word_bigrams)
     return tokens
 
 
