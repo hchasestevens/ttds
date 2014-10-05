@@ -38,9 +38,9 @@ class Tokens(collections.namedtuple("Vector", 'id_ tokens')):
         return self._len
 
 
-def ngrams(n, list_):
+def ngrams(n, list_, delimiter=''):
     streams = (list_[i:] for i in xrange(n))
-    return ['|'.join(ngram) for ngram in itertools.izip(*streams)]
+    return [''.join(ngram) for ngram in itertools.izip(*streams)]
 
 
 def tf(word, vector):
@@ -54,7 +54,11 @@ def tokenize(line):
         re.findall("[A-Za-z0-9]+", line)
         if not token in STOPWORDS
     ]
-    tokens.extend(ngrams(2, tokens))
+    tokens.extend(itertools.chain(*[
+        ngrams(4, token)
+        for token in
+        tokens
+    ]))
     return tokens
 
 
