@@ -55,7 +55,7 @@ class Vector(collections.namedtuple("Vector", 'id_ vector')):
         try:
             return self._idf
         except Exception:
-            self._idf = (dtf / (dtf + (doc_avg_k * len(self)))) * math.log(num_docs / df(word))
+            self._idf = (dtf / (dtf + (doc_avg_k * len(self)))) * math.log(float(num_docs) / df(word))
         return self._idf
 
 
@@ -88,15 +88,15 @@ def tf_idf_factory(df, avg_doclen, num_docs):
 
 def main():
     with open('qrys.txt') as f:
-        queries = f.readlines()
+        query_lines = f.readlines()
     with open('docs.txt') as f:
-        documents = f.readlines()
+        document_lines = f.readlines()
 
     tokenizer = functools.partial(re.findall, "[A-Za-z0-9]+")
     queries, documents = [
         [Vector(tokenizer(line.lower())) for line in lines]
         for lines in 
-        (queries, documents)
+        (query_lines, document_lines)
     ]
 
     df = df_factory(documents)
