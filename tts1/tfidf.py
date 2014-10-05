@@ -81,7 +81,7 @@ def tf_idf_factory(df, avg_doclen, num_docs):
         return sum(
             tf(word, query) * document.idf(tf(word, document), doc_avg_k, num_docs, df, word)
             for word in
-            set(query.vector) | set(document.vector)
+            set(query.vector) & set(document.vector)
         )
     return tf_idf
 
