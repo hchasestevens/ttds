@@ -36,9 +36,9 @@ def counter(tokens):
     return d
 
 
-class Vector(collections.namedtuple("Vector", 'id_ vector')):
+class Tokens(collections.namedtuple("Vector", 'id_ tokens')):
     def __new__(cls, tokenized_line):
-        return super(Vector, cls).__new__(
+        return super(Tokens, cls).__new__(
             cls,
             tokenized_line[0],
             tokenized_line[1:]
@@ -48,42 +48,16 @@ class Vector(collections.namedtuple("Vector", 'id_ vector')):
         try:
             return self._len
         except Exception:
-            self._len = len(self.vector)
+            self._len = len(self.tokens)
         return self._len
-
-    def idf(self, dtf, doc_avg_k, num_docs, df, word):
-        try:
-            return self._idf
-        except Exception:
-            self._idf = (float(dtf) / (dtf + (doc_avg_k * len(self)))) * math.log(float(num_docs) / df(word))
-        return self._idf
 
 
 def tf(word, vector):
-    return float(vector.vector.count(word))
+    return float(vector.tokens.count(word))
 
 
-def df_factory(collection):
-    @cached_by_value
-    def df(word):
-        return float(sum(
-            word in document.vector
-            for document in
-            collection
-        ))
-    return df
-
-
-def tf_idf_factory(df, avg_doclen, num_docs):
-    k = 2.
-    doc_avg_k = k / avg_doclen
-    def tf_idf(query, document):
-        return sum(
-            tf(word, query) * document.idf(tf(word, document), doc_avg_k, num_docs, df, word)
-            for word in
-            set(query.vector) & set(document.vector)
-        )
-    return tf_idf
+def tokenize(line):
+    return re.findall("[A-Za-z0-9]+", line)
 
 
 def main():
@@ -92,35 +66,35 @@ def main():
     with open('docs.txt') as f:
         document_lines = f.readlines()
 
-    tokenizer = functools.partial(re.findall, "[A-Za-z0-9]+")
     queries, documents = [
-        [Vector(tokenizer(line.lower())) for line in lines]
+        [Tokens(tokenize(line.lower())) for line in lines]
         for lines in 
         (query_lines, document_lines)
     ]
 
-    df = df_factory(documents)
+    df = collections.defaultdict(float)
+    for document in documents:
+        for token in set(document.tokens):
+            df[token] += 1
 
     avg_document_len = sum(len(document) for document in documents) / float(len(documents))
 
-    tf_idf = tf_idf_factory(df, avg_document_len, len(documents))
+    output = []
+    k = 2.
+    doc_avg_k = k / avg_document_len
+    for i, query in enumerate(queries):
+        print float(i) / len(queries), '\b'*100,
+        for document in documents:
+            tfidf_score = 0
+            for word in set(query.tokens) & set(document.tokens):
+                doc_tf = tf(word, document)
 
-    output = (
-        (query.id_,
-         document.id_,
-         tf_idf(query, document)
-        )
-        for query in 
-        queries
-        for document in 
-        documents
-    )
+                temp_score = tf(word, query)
+                temp_score *= math.log(float(len(documents)) / df[word])
+                temp_score *= doc_tf / (doc_tf + (doc_avg_k * len(document)))
 
-    output_ = []
-    for i, item in enumerate(output):
-        print float(i) / (len(queries) * len(documents)), '\b'*100,
-        output_.append(item)
-    output = output_
+                tfidf_score += temp_score
+            output.append((query.id_, document.id_, tfidf_score))
 
     with open(OUTPUT_FNAME, 'w') as f:
         f.write('\n'.join(
