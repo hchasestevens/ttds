@@ -78,7 +78,7 @@ def tokenize(line):
     ]
     tokens.extend(morpheme_4grams)
     tokens.extend(word_bigrams)
-    tokens.extend(extended_tokens)
+    #tokens.extend(extended_tokens)
     tokens.extend(stripped_extended_tokens)
     return tokens
 
