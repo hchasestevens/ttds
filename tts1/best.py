@@ -15,7 +15,6 @@ judgements for the test set), but assume that MAP for the training queries will
 be representative of the MAP for the testing queries.
 """
 import collections
-import functools
 import re
 import itertools
 import math
@@ -37,6 +36,11 @@ class Tokens(collections.namedtuple("Vector", 'id_ tokens')):
         except Exception:
             self._len = len(self.tokens)
         return self._len
+
+
+def ngrams(n, list_):
+    streams = (list_[i:] for i in xrange(n))
+    return ['|'.join(ngram) for ngram in itertools.izip(*streams)]
 
 
 def tf(word, vector):
