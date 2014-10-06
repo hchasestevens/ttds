@@ -109,7 +109,7 @@ def main(query_fname, output_fname):
 
     print "Performing IR"
     output = []
-    k = 2.75
+    k = 3.5
     doc_avg_k = k / avg_document_len
     for i, query in enumerate(queries):
         print float(i) / len(queries), '\b'*100,
