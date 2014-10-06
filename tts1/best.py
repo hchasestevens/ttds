@@ -66,8 +66,8 @@ def tokenize(line, query=False):
         base_tokens
         if not token in STOPWORDS
     ]
-    morpheme_4grams = itertools.chain(*[
-        ngrams(4, token)
+    morpheme_5grams = itertools.chain(*[
+        ngrams(5, token)
         for token in
         tokens
     ])
@@ -78,7 +78,7 @@ def tokenize(line, query=False):
         re.findall("[A-Za-z0-9\.\-\_\/]+", line)
         if not token in tokens
     ]
-    tokens.extend(morpheme_4grams)
+    tokens.extend(morpheme_5grams)
     tokens.extend(word_bigrams)
     tokens.extend(extended_tokens)
     if query:
