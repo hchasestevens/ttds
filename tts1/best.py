@@ -77,6 +77,7 @@ def tokenize(line, query=False):
         for token in
         re.findall("[A-Za-z0-9\.\-\_\/]+", line)
         if not token in tokens
+        and token not in STOPWORDS
     ]
     tokens.extend(morpheme_4grams)
     tokens.extend(word_bigrams)
