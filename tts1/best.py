@@ -71,11 +71,6 @@ def tokenize(line, query=False):
         for token in
         tokens
     ])
-    morpheme_5grams = itertools.chain(*[
-        [ngram for ngram in ngrams(5, token) if ngram not in tokens]
-        for token in
-        tokens
-    ])
     word_bigrams = ngrams(2, tokens, '|')
     extended_tokens = [
         token
@@ -84,7 +79,6 @@ def tokenize(line, query=False):
         if not token in tokens
     ]
     tokens.extend(morpheme_4grams)
-    tokens.extend(morpheme_5grams)
     tokens.extend(word_bigrams)
     tokens.extend(extended_tokens)
     if query:
