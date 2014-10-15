@@ -32,40 +32,37 @@ OUTPUT_FNAME = 'pairs.out'
 THRESHOLD = 0.2
 
 
-class Defaultdict(dict):
-    """Pseudo-reimplementation of collections.defaultdict"""
-    def __init__(self, default_value, *args, **kwargs):
-        self._default_value = default_value
-        super(Defaultdict, self).__init__(*args, **kwargs)
-
-    def __getitem__(self, item):
+def counter(tokens):
+    """Pseudo-reimplementation of collections.Counter"""
+    d = {}
+    for token in tokens:
         try:
-            return super(Defaultdict, self).__getitem__(item)
+            d[token] += 1
         except KeyError:
-            return self._default_value
+            d[token] = 1
+    return d
 
 
 def cos_tfidf(idf_scores, tokens1, tokens2):
     mutual_tokens = set(tokens1) | set(tokens2)
     if not mutual_tokens:
         return 0
-    num = []
-    q_denom = []  # TODO: probably want to cache these?
-    d_denom = []
+    num = 0
+    q_denom = 0  # TODO: probably want to cache these?
+    d_denom = 0
     for token in mutual_tokens:
-        idf = idf_scores[token]
-        q = tokens1.count(token) * idf  # TODO: might want these to be stored as dicts 
-        d = tokens2.count(token) * idf  # TODO: might want to try to cache these hard.
-        num.append(q * d)
-        q_denom.append(q ** 2)
-        d_denom.append(d ** 2)
-    return sum(num) / (sum(q_denom) ** 0.5 * sum(d_denom) ** 0.5) 
+        idf = idf_scores.get(token, 13.6332)
+        q = tokens1.get(token, 0) * idf  
+        d = tokens2.get(token, 0) * idf  # TODO: might want to try to cache these hard.
+        num += q * d
+        q_denom += q ** 2
+        d_denom += d ** 2
+    return num / (q_denom ** 0.5 * d_denom ** 0.5) 
 
 
 def main():
     with open('news.idf', 'r') as f:
-        idf_scores = Defaultdict(
-            13.6332, 
+        idf_scores = dict(
             ((word, float(val))
              for val, word in 
              (line.split() for line in f.readlines())
@@ -82,7 +79,7 @@ def main():
                     break
                 if i % 100 == 0:  # TODO: remove
                     print i
-                new_story = [token.lower() for token in line.split()[1:]]
+                new_story = counter(token.lower() for token in line.split()[1:])
                 try:
                     best_score, best_match = max(
                         (cos_tfidf(idf_scores, new_story, old_story), -j)
