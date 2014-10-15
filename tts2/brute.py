@@ -45,22 +45,24 @@ class Defaultdict(dict):
             return self._default_value
 
 
-def take(n, iterable):
-    iterable_ = iter(iterable)
-    for __ in xrange(n):
-        yield next(iterable)
+def cos_tfidf(idf_scores, tokens1, tokens2):
+    mutual_tokens = set(tokens1) | set(tokens2)
+    if not mutual_tokens:
+        return 0
+    num = []
+    q_denom = []  # TODO: probably want to cache these?
+    d_denom = []
+    for token in mutual_tokens:
+        idf = idf_scores[token]
+        q = tokens1.count(token) * idf  # TODO: might want these to be stored as dicts 
+        d = tokens2.count(token) * idf  # TODO: might want to try to cache these hard.
+        num.append(q * d)
+        q_denom.append(q ** 2)
+        d_denom.append(d ** 2)
+    return sum(num) / (sum(q_denom) ** 0.5 * sum(d_denom) ** 0.5) 
 
 
 def main():
-    with open('news.txt', 'r') as f:
-        news_lines = (line.split() for line in f.readlines())
-
-    news_items = [
-        [token.lower() for token in tokens[1:]]
-        for tokens in 
-        news_lines
-    ]
-
     with open('news.idf', 'r') as f:
         idf_scores = Defaultdict(
             13.6332, 
@@ -70,17 +72,27 @@ def main():
              )
         )
 
-    out_pairs = []
+    old_stories = []
 
-    for i, primary_tokens in enumerate(news_items):
-        best_match = None
-        best_score = 0
-        for j, secondary_tokens in enumerate(news_items):
-            if i == j:
-                break
-            # do similarity calculations
-        if best_score > THRESHOLD:
-            out_pairs.append((i + 1, j + 1))
+    with open('news.txt', 'r') as news:
+        with open(OUTPUT_FNAME, 'w') as out:
+            lines = enumerate(news.readlines())
+            for i, line in lines:
+                print i
+                new_story = [token.lower() for token in line.split()[1:]]
+                try:
+                    best_score, best_match = max(
+                        (cos_tfidf(idf_scores, new_story, old_story), -j)
+                        for j, old_story in
+                        enumerate(old_stories)
+                    )
+                    if best_score > THRESHOLD:
+                        out.write(str(i + 1) + " " + str(-best_match + 1) + "\n")  # not sure this is most efficient string construction
+                        out.flush()
+                except ValueError:
+                    pass  # TODO: more elegant/less overhead way to do this?
+                finally:
+                    old_stories.append(new_story)
 
 
 if __name__ == '__main__':
