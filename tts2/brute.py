@@ -78,7 +78,10 @@ def main():
         with open(OUTPUT_FNAME, 'w') as out:
             lines = enumerate(news.readlines())
             for i, line in lines:
-                print i
+                if i == 10000:  # TODO: probably want to izip with xrange or something?
+                    break
+                if i % 100 == 0:  # TODO: remove
+                    print i
                 new_story = [token.lower() for token in line.split()[1:]]
                 try:
                     best_score, best_match = max(
@@ -96,5 +99,9 @@ def main():
 
 
 if __name__ == '__main__':
+    import time; print "WARNING: IMPORT STILL IN FILE"  # TODO: remove
+    t = time.time()
     main()
+    print (time.time() - t) / 60.
+
 
