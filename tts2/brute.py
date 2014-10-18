@@ -43,17 +43,15 @@ def counter(tokens):
     return d
 
 
-def cos_tfidf(idf_scores, tokens1, tokens2):
-    mutual_tokens = set(tokens1) | set(tokens2)
-    if not mutual_tokens:
-        return 0
+def cos_tfidf(idf_scores, q_tokens, d_tokens):
+    all_tokens = set(q_tokens) | set(d_tokens)  # TODO: calc intersection, num only on this?
     num = 0
     q_denom = 0  # TODO: probably want to cache these?
     d_denom = 0
-    for token in mutual_tokens:
+    for token in all_tokens:
         idf = idf_scores.get(token, 13.6332)
-        q = tokens1.get(token, 0) * idf  
-        d = tokens2.get(token, 0) * idf  # TODO: might want to try to cache these hard.
+        q = q_tokens.get(token, 0) * idf  
+        d = d_tokens.get(token, 0) * idf  # TODO: might want to try to cache these hard.
         num += q * d
         q_denom += q ** 2
         d_denom += d ** 2
@@ -65,7 +63,7 @@ def main():
         idf_scores = dict(
             ((word, float(val))
              for val, word in 
-             (line.split() for line in f.readlines())
+             (line.split() for line in f)
              )
         )
 
@@ -73,7 +71,7 @@ def main():
 
     with open('news.txt', 'r') as news:
         with open(OUTPUT_FNAME, 'w') as out:
-            lines = enumerate(news.readlines())
+            lines = enumerate(news)
             for i, line in lines:
                 if i == 10000:  # TODO: probably want to izip with xrange or something?
                     break
