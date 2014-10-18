@@ -43,19 +43,15 @@ def counter(tokens):
     return d
 
 
-def cos_tfidf(idf_scores, q_tokens, d_tokens):
-    all_tokens = set(q_tokens) | set(d_tokens)  # TODO: calc intersection, num only on this?
+def cos_tfidf(idf_scores, q_tokens, q_denom, d_tokens, d_denom):
+    mutual_tokens = set(q_tokens) & set(d_tokens)
     num = 0
-    q_denom = 0  # TODO: probably want to cache these?
-    d_denom = 0
-    for token in all_tokens:
+    for token in mutual_tokens:
         idf = idf_scores.get(token, 13.6332)
         q = q_tokens.get(token, 0) * idf  
         d = d_tokens.get(token, 0) * idf  # TODO: might want to try to cache these hard.
         num += q * d
-        q_denom += q ** 2
-        d_denom += d ** 2
-    return num / (q_denom ** 0.5 * d_denom ** 0.5) 
+    return num / (q_denom * d_denom) 
 
 
 def main():
@@ -78,10 +74,11 @@ def main():
                 if i % 100 == 0:  # TODO: remove
                     print i
                 new_story = counter(token.lower() for token in line.split()[1:])
+                new_story_denom = sum((v * idf_scores.get(k, 13.6332)) ** 2 for k, v in new_story.iteritems()) ** 0.5
                 try:
                     best_score, best_match = max(
-                        (cos_tfidf(idf_scores, new_story, old_story), -j)
-                        for j, old_story in
+                        (cos_tfidf(idf_scores, new_story, new_story_denom, old_story, old_story_denom), -j)
+                        for j, (old_story, old_story_denom) in
                         enumerate(old_stories)
                     )
                     if best_score > THRESHOLD:
@@ -90,7 +87,7 @@ def main():
                 except ValueError:
                     pass  # TODO: more elegant/less overhead way to do this?
                 finally:
-                    old_stories.append(new_story)
+                    old_stories.append((new_story, new_story_denom))
 
 
 if __name__ == '__main__':
