@@ -69,7 +69,7 @@ def indexed_cos_tfidf(get_idf, q_tokens, q_denom, token_index, d_denoms):
     )
     return doc, score
 
-N = 10000
+N = 50000
 
 def main():
     with open('news.idf', 'r') as f:
@@ -112,6 +112,8 @@ def main():
 
     with open('news.txt', 'r') as news:
         with open(OUTPUT_FNAME, 'w') as out:
+            out_write = out.write
+            out_flush = out.flush
             lines = enumerate(news)
             for i, line in lines:
                 if i == N:  # TODO: probably want to izip with xrange or something?
@@ -124,8 +126,8 @@ def main():
                     #if next(doline):
                     best_match, best_score = indexed_cos_tfidf(get_idf, new_story, new_story_denom, token_index, old_denoms)
                     if best_score > THRESHOLD:
-                        out.write(str(i + 1) + " " + str(-best_match + 1) + "\n")  # not sure this is most efficient string construction
-                        out.flush()
+                        out_write(str(i + 1) + " " + str(-best_match + 1) + "\n")  # not sure this is most efficient string construction
+                        out_flush()
                 except ValueError:
                     pass  # TODO: more elegant/less overhead way to do this?
                 finally:
