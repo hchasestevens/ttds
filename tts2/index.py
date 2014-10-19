@@ -62,7 +62,7 @@ def indexed_cos_tfidf(idf_scores, q_tokens, q_denom, token_index, d_denoms):
         for doc, score in
         doc_scores.iteritems()
     )
-    return -doc, score
+    return doc, score
 
 
 def main():
