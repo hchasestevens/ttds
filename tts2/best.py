@@ -32,6 +32,13 @@ OUTPUT_FNAME = 'pairs.out.best'
 THRESHOLD = 0.2
 
 
+def cycle(values):
+    """Reimplementation of itertools.cycle"""
+    while True:
+        for value in values:
+            yield value
+
+
 def counter_idf(tokens, get_idf):
     """Pseudo-reimplementation of collections.Counter"""
     d = {}
@@ -62,7 +69,7 @@ def indexed_cos_tfidf(get_idf, q_tokens, q_denom, token_index, d_denoms):
     )
     return doc, score
 
-N = 5000
+N = 10000
 
 def main():
     with open('news.idf', 'r') as f:
@@ -74,7 +81,7 @@ def main():
         )
     get_idf = idf_scores.get
 
-    stopwords = frozenset((
+    english_stopwords = set((
         'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 
         'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 
         'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 
@@ -92,10 +99,16 @@ def main():
         'can', 'will', 'just', 'don', 'should', 'now'
     ))  # taken from nltk.corpus.stopwords.words('english')
 
+    news_stopwords = set(word for word, value in idf_scores.iteritems() if value < 2.5)
+
+    stopwords = frozenset(english_stopwords | news_stopwords)
+
     old_denoms = {}
     token_index = {}
 
     global N
+
+    #doline = cycle(range(15))
 
     with open('news.txt', 'r') as news:
         with open(OUTPUT_FNAME, 'w') as out:
@@ -108,6 +121,7 @@ def main():
                 new_story = counter_idf((token for token in line.lower().split()[1:] if token not in stopwords), get_idf)
                 new_story_denom = sum(v ** 2 for k, v in new_story.iteritems()) ** 0.5
                 try:
+                    #if next(doline):
                     best_match, best_score = indexed_cos_tfidf(get_idf, new_story, new_story_denom, token_index, old_denoms)
                     if best_score > THRESHOLD:
                         out.write(str(i + 1) + " " + str(-best_match + 1) + "\n")  # not sure this is most efficient string construction
