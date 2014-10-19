@@ -62,7 +62,7 @@ def indexed_cos_tfidf(get_idf, q_tokens, q_denom, token_index, d_denoms):
     )
     return doc, score
 
-N = 10000
+N = 5000
 
 def main():
     with open('news.idf', 'r') as f:
@@ -87,7 +87,7 @@ def main():
                     break
                 if i % 100 == 0:  # TODO: remove
                     print i
-                new_story = counter_idf((token.lower() for token in line.split()[1:]), get_idf)
+                new_story = counter_idf((token for token in line.lower().split()[1:]), get_idf)
                 new_story_denom = sum(v ** 2 for k, v in new_story.iteritems()) ** 0.5
                 try:
                     best_match, best_score = indexed_cos_tfidf(get_idf, new_story, new_story_denom, token_index, old_denoms)
