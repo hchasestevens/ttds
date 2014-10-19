@@ -69,7 +69,7 @@ def indexed_cos_tfidf(get_idf, q_tokens, q_denom, token_index, d_denoms):
     )
     return doc, score
 
-N = 1000
+N = 50000
 
 def main():
     with open('news.idf', 'r') as f:
@@ -102,6 +102,7 @@ def main():
     news_stopwords = set(word for word, value in idf_scores.iteritems() if value < 3.4951)
 
     stopwords = frozenset(english_stopwords | news_stopwords)
+    print len(stopwords)
     in_stopwords = stopwords.__contains__
 
     old_denoms = {}
@@ -123,13 +124,14 @@ def main():
                 if i % 100 == 0:  # TODO: remove
                     print i
                 tokens = tuple(line.lower().split()[1:])
+                first_tokens = tokens[:40]
                 try:
-                    first_seen = line_first_seen[tokens]
+                    first_seen = line_first_seen[first_tokens]
                     out_write("%s %s\n" %(str(i + 1), first_seen))
                     out_flush()
                     continue
                 except:
-                    line_first_seen[tokens] = str(i + 1)
+                    line_first_seen[first_tokens] = str(i + 1)
                 new_story = counter_idf((token for token in tokens if not in_stopwords(token)), get_idf)
                 new_story_denom = sum(v ** 2 for k, v in new_story.iteritems()) ** 0.5
                 try:
