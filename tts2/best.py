@@ -32,31 +32,29 @@ OUTPUT_FNAME = 'pairs.out.best'
 THRESHOLD = 0.2
 
 
-def counter(tokens):
+def counter_idf(tokens, get_idf):
     """Pseudo-reimplementation of collections.Counter"""
     d = {}
     for token in tokens:
         try:
-            d[token] += 1
+            d[token] += get_idf(token, 13.6332)
         except KeyError:
-            d[token] = 1
+            d[token] = get_idf(token, 13.6332)
     return d
 
 
-def indexed_cos_tfidf(idf_scores, q_tokens, q_denom, token_index, d_denoms):
+def indexed_cos_tfidf(get_idf, q_tokens, q_denom, token_index, d_denoms):
     doc_scores = {}
     for token, count in q_tokens.iteritems():
         try:
             doc_counts = token_index[token]
         except KeyError:
             continue
-        idf = idf_scores.get(token, 13.6332)
-        q = count * idf  
         for doc, doc_count in doc_counts:
             try:
-                doc_scores[doc] += q * doc_count * idf
+                doc_scores[doc] += count * doc_count
             except KeyError:
-                doc_scores[doc] = q * doc_count * idf
+                doc_scores[doc] = count * doc_count
     score, doc = max(
         (score / (q_denom * d_denoms[doc]), -doc)
         for doc, score in
@@ -74,6 +72,7 @@ def main():
              (line.split() for line in f)
              )
         )
+    get_idf = idf_scores.get
 
     old_denoms = {}
     token_index = {}
@@ -88,10 +87,10 @@ def main():
                     break
                 if i % 100 == 0:  # TODO: remove
                     print i
-                new_story = counter(token.lower() for token in line.split()[1:])
-                new_story_denom = sum((v * idf_scores.get(k, 13.6332)) ** 2 for k, v in new_story.iteritems()) ** 0.5
+                new_story = counter_idf((token.lower() for token in line.split()[1:]), get_idf)
+                new_story_denom = sum(v ** 2 for k, v in new_story.iteritems()) ** 0.5
                 try:
-                    best_match, best_score = indexed_cos_tfidf(idf_scores, new_story, new_story_denom, token_index, old_denoms)
+                    best_match, best_score = indexed_cos_tfidf(get_idf, new_story, new_story_denom, token_index, old_denoms)
                     if best_score > THRESHOLD:
                         out.write(str(i + 1) + " " + str(-best_match + 1) + "\n")  # not sure this is most efficient string construction
                         out.flush()
