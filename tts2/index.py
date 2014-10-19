@@ -28,7 +28,7 @@ from news.txt in the current directory and write the results to pairs.out
 in the current directory. Stop after processing 10,000 stories.
 """
 
-OUTPUT_FNAME = 'pairs.out'
+OUTPUT_FNAME = 'pairs.out.index'
 THRESHOLD = 0.2
 
 
@@ -43,15 +43,26 @@ def counter(tokens):
     return d
 
 
-def cos_tfidf(idf_scores, q_tokens, q_denom, d_tokens, d_denom):
-    mutual_tokens = set(q_tokens) & set(d_tokens)
-    num = 0
-    for token in mutual_tokens:
+def indexed_cos_tfidf(idf_scores, q_tokens, q_denom, token_index, d_denoms):
+    doc_scores = {}
+    for token, count in q_tokens.iteritems():
+        try:
+            doc_counts = token_index[token]
+        except KeyError:
+            continue
         idf = idf_scores.get(token, 13.6332)
-        q = q_tokens.get(token, 0) * idf  
-        d = d_tokens.get(token, 0) * idf  # TODO: might want to try to cache these hard.
-        num += q * d
-    return num / (q_denom * d_denom) 
+        q = count * idf  
+        for doc, doc_count in doc_counts:
+            try:
+                doc_scores[doc] += q * doc_count * idf
+            except KeyError:
+                doc_scores[doc] = q * doc_count * idf
+    score, doc = max(
+        (score / (q_denom * d_denoms[doc]), -doc)
+        for doc, score in
+        doc_scores.iteritems()
+    )
+    return -doc, score
 
 
 def main():
@@ -63,7 +74,7 @@ def main():
              )
         )
 
-    old_stories = []
+    old_denoms = {}
     token_index = {}
 
     with open('news.txt', 'r') as news:
@@ -76,24 +87,20 @@ def main():
                     print i
                 new_story = counter(token.lower() for token in line.split()[1:])
                 new_story_denom = sum((v * idf_scores.get(k, 13.6332)) ** 2 for k, v in new_story.iteritems()) ** 0.5
-                for token, count in new_story.iteritems():
-                    try:
-                        token_index[token].append((i, count))
-                    except ValueError:
-                        token_index[token] = [(i, count)]
                 try:
-                    best_score, best_match = max(
-                        (cos_tfidf(idf_scores, new_story, new_story_denom, old_story, old_story_denom), -j)
-                        for j, (old_story, old_story_denom) in
-                        enumerate(old_stories)
-                    )
+                    best_match, best_score = indexed_cos_tfidf(idf_scores, new_story, new_story_denom, token_index, old_denoms)
                     if best_score > THRESHOLD:
                         out.write(str(i + 1) + " " + str(-best_match + 1) + "\n")  # not sure this is most efficient string construction
                         out.flush()
                 except ValueError:
                     pass  # TODO: more elegant/less overhead way to do this?
                 finally:
-                    old_stories.append((new_story, new_story_denom))
+                    for token, count in new_story.iteritems():
+                        try:
+                            token_index[token].append((i, count))
+                        except KeyError:
+                            token_index[token] = [(i, count)]
+                    old_denoms[i] = new_story_denom
 
 
 if __name__ == '__main__':
