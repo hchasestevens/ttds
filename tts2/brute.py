@@ -49,10 +49,12 @@ def cos_tfidf(idf_scores, q_tokens, q_denom, d_tokens, d_denom):
     for token in mutual_tokens:
         idf = idf_scores.get(token, 13.6332)
         q = q_tokens.get(token, 0) * idf  
-        d = d_tokens.get(token, 0) * idf  # TODO: might want to try to cache these hard.
+        d = d_tokens.get(token, 0) * idf
         num += q * d
     return num / (q_denom * d_denom) 
 
+
+N = 10000
 
 def main():
     with open('news.idf', 'r') as f:
@@ -65,14 +67,14 @@ def main():
 
     old_stories = []
 
+    global N
+
     with open('news.txt', 'r') as news:
         with open(OUTPUT_FNAME, 'w') as out:
             lines = enumerate(news)
             for i, line in lines:
-                if i == 10000:  # TODO: probably want to izip with xrange or something?
+                if i == N:
                     break
-                if i % 100 == 0:  # TODO: remove
-                    print i
                 new_story = counter(token.lower() for token in line.split()[1:])
                 new_story_denom = sum((v * idf_scores.get(k, 13.6332)) ** 2 for k, v in new_story.iteritems()) ** 0.5
                 try:
@@ -82,18 +84,14 @@ def main():
                         enumerate(old_stories)
                     )
                     if best_score > THRESHOLD:
-                        out.write(str(i + 1) + " " + str(-best_match + 1) + "\n")  # not sure this is most efficient string construction
+                        out.write(str(i + 1) + " " + str(-best_match + 1) + "\n")
                         out.flush()
                 except ValueError:
-                    pass  # TODO: more elegant/less overhead way to do this?
+                    pass
                 finally:
                     old_stories.append((new_story, new_story_denom))
 
 
 if __name__ == '__main__':
-    import time; print "WARNING: IMPORT STILL IN FILE"  # TODO: remove
-    t = time.time()
     main()
-    print (time.time() - t) / 60.
-
 
