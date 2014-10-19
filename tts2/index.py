@@ -28,7 +28,7 @@ from news.txt in the current directory and write the results to pairs.out
 in the current directory. Stop after processing 10,000 stories.
 """
 
-OUTPUT_FNAME = 'pairs.out.index'
+OUTPUT_FNAME = 'pairs.out'
 THRESHOLD = 0.2
 
 
@@ -65,6 +65,8 @@ def indexed_cos_tfidf(idf_scores, q_tokens, q_denom, token_index, d_denoms):
     return doc, score
 
 
+N = 10000
+
 def main():
     with open('news.idf', 'r') as f:
         idf_scores = dict(
@@ -77,23 +79,23 @@ def main():
     old_denoms = {}
     token_index = {}
 
+    global N
+
     with open('news.txt', 'r') as news:
         with open(OUTPUT_FNAME, 'w') as out:
             lines = enumerate(news)
             for i, line in lines:
-                if i == 10000:  # TODO: probably want to izip with xrange or something?
+                if i == N:
                     break
-                if i % 100 == 0:  # TODO: remove
-                    print i
                 new_story = counter(token.lower() for token in line.split()[1:])
                 new_story_denom = sum((v * idf_scores.get(k, 13.6332)) ** 2 for k, v in new_story.iteritems()) ** 0.5
                 try:
                     best_match, best_score = indexed_cos_tfidf(idf_scores, new_story, new_story_denom, token_index, old_denoms)
                     if best_score > THRESHOLD:
-                        out.write(str(i + 1) + " " + str(-best_match + 1) + "\n")  # not sure this is most efficient string construction
+                        out.write(str(i + 1) + " " + str(-best_match + 1) + "\n")
                         out.flush()
                 except ValueError:
-                    pass  # TODO: more elegant/less overhead way to do this?
+                    pass
                 finally:
                     for token, count in new_story.iteritems():
                         try:
@@ -104,7 +106,4 @@ def main():
 
 
 if __name__ == '__main__':
-    import time; print "WARNING: IMPORT STILL IN FILE"  # TODO: remove
-    t = time.time()
     main()
-    print (time.time() - t) / 60.
