@@ -102,6 +102,7 @@ def main():
     news_stopwords = set(word for word, value in idf_scores.iteritems() if value < 5)
 
     stopwords = frozenset(english_stopwords | news_stopwords)
+    in_stopwords = stopwords.__contains__
 
     old_denoms = {}
     token_index = {}
@@ -120,7 +121,7 @@ def main():
                     break
                 if i % 100 == 0:  # TODO: remove
                     print i
-                new_story = counter_idf((token for token in line.lower().split()[1:] if token not in stopwords), get_idf)
+                new_story = counter_idf((token for token in line.lower().split()[1:] if not in_stopwords(token)), get_idf)
                 new_story_denom = sum(v ** 2 for k, v in new_story.iteritems()) ** 0.5
                 try:
                     #if next(doline):
