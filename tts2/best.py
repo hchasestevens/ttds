@@ -99,7 +99,7 @@ def main():
         'can', 'will', 'just', 'don', 'should', 'now'
     ))  # taken from nltk.corpus.stopwords.words('english')
 
-    news_stopwords = set(word for word, value in idf_scores.iteritems() if value < 2.5)
+    news_stopwords = set(word for word, value in idf_scores.iteritems() if value < 5)
 
     stopwords = frozenset(english_stopwords | news_stopwords)
 
