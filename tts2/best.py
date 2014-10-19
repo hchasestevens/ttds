@@ -28,15 +28,8 @@ from news.txt in the current directory and write the results to pairs.out
 in the current directory. Stop after processing 10,000 stories.
 """
 
-OUTPUT_FNAME = 'pairs.out.best'
+OUTPUT_FNAME = 'pairs.out'
 THRESHOLD = 0.2
-
-
-def cycle(values):
-    """Reimplementation of itertools.cycle"""
-    while True:
-        for value in values:
-            yield value
 
 
 def counter_idf(tokens, get_idf):
@@ -69,8 +62,6 @@ def indexed_cos_tfidf(get_idf, q_tokens, q_denom, token_index, d_denoms):
     )
     return doc, score
 
-N = 10000
-
 def main():
     with open('news.idf', 'r') as f:
         idf_scores = dict(
@@ -102,16 +93,11 @@ def main():
     news_stopwords = set(word for word, value in idf_scores.iteritems() if value < 3.38211)
 
     stopwords = frozenset(english_stopwords | news_stopwords)
-    print len(stopwords)
     in_stopwords = stopwords.__contains__
 
     old_denoms = {}
     token_index = {}
     line_first_seen = {}
-
-    global N
-
-    #doline = cycle(range(15))
 
     with open('news.txt', 'r') as news:
         with open(OUTPUT_FNAME, 'w') as out:
@@ -119,10 +105,6 @@ def main():
             out_flush = out.flush
             lines = enumerate(news)
             for i, line in lines:
-                if i == N:  # TODO: probably want to izip with xrange or something?
-                    break
-                if i % 100 == 0:  # TODO: remove
-                    print i
                 tokens = tuple(line.lower().split()[1:])
                 first_tokens = tokens[:40]
                 try:
@@ -135,13 +117,12 @@ def main():
                 new_story = counter_idf((token for token in tokens if not in_stopwords(token)), get_idf)
                 new_story_denom = sum(v ** 2 for k, v in new_story.iteritems()) ** 0.5
                 try:
-                    #if next(doline):
                     best_match, best_score = indexed_cos_tfidf(get_idf, new_story, new_story_denom, token_index, old_denoms)
                     if best_score > THRESHOLD:
                         out_write("%s %s\n" %(str(i + 1), str(-best_match + 1)))
                         out_flush()
                 except ValueError:
-                    pass  # TODO: more elegant/less overhead way to do this?
+                    pass
                 finally:
                     for token, count in new_story.iteritems():
                         try:
@@ -152,9 +133,4 @@ def main():
 
 
 if __name__ == '__main__':
-    import time; print "WARNING: IMPORT STILL IN FILE"  # TODO: remove
-    t = time.time()
     main()
-    print (time.time() - t) / 60.
-    print 'best'
-    print N
