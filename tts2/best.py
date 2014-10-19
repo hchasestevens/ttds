@@ -69,7 +69,7 @@ def indexed_cos_tfidf(get_idf, q_tokens, q_denom, token_index, d_denoms):
     )
     return doc, score
 
-N = 10000
+N = 1000
 
 def main():
     with open('news.idf', 'r') as f:
@@ -106,6 +106,7 @@ def main():
 
     old_denoms = {}
     token_index = {}
+    line_first_seen = {}
 
     global N
 
@@ -121,7 +122,15 @@ def main():
                     break
                 if i % 100 == 0:  # TODO: remove
                     print i
-                new_story = counter_idf((token for token in line.lower().split()[1:] if not in_stopwords(token)), get_idf)
+                tokens = tuple(line.lower().split()[1:])
+                try:
+                    first_seen = line_first_seen[tokens]
+                    out_write("%s %s\n" %(str(i + 1), first_seen))
+                    out_flush()
+                    continue
+                except:
+                    line_first_seen[tokens] = str(i + 1)
+                new_story = counter_idf((token for token in tokens if not in_stopwords(token)), get_idf)
                 new_story_denom = sum(v ** 2 for k, v in new_story.iteritems()) ** 0.5
                 try:
                     #if next(doline):
