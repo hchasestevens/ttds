@@ -74,6 +74,24 @@ def main():
         )
     get_idf = idf_scores.get
 
+    stopwords = frozenset((
+        'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 
+        'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 
+        'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 
+        'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who'
+        , 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 
+        'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 
+        'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 
+        'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 
+        'about', 'against', 'between', 'into', 'through', 'during', 'before', 
+        'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 
+        'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 
+        'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 
+        'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 
+        'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 
+        'can', 'will', 'just', 'don', 'should', 'now'
+    ))  # taken from nltk.corpus.stopwords.words('english')
+
     old_denoms = {}
     token_index = {}
 
@@ -87,7 +105,7 @@ def main():
                     break
                 if i % 100 == 0:  # TODO: remove
                     print i
-                new_story = counter_idf((token for token in line.lower().split()[1:]), get_idf)
+                new_story = counter_idf((token for token in line.lower().split()[1:] if token not in stopwords), get_idf)
                 new_story_denom = sum(v ** 2 for k, v in new_story.iteritems()) ** 0.5
                 try:
                     best_match, best_score = indexed_cos_tfidf(get_idf, new_story, new_story_denom, token_index, old_denoms)
