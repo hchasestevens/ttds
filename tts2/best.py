@@ -127,7 +127,7 @@ def main():
                     #if next(doline):
                     best_match, best_score = indexed_cos_tfidf(get_idf, new_story, new_story_denom, token_index, old_denoms)
                     if best_score > THRESHOLD:
-                        out_write(str(i + 1) + " " + str(-best_match + 1) + "\n")  # not sure this is most efficient string construction
+                        out_write("%s %s\n" %(str(i + 1), str(-best_match + 1)))
                         out_flush()
                 except ValueError:
                     pass  # TODO: more elegant/less overhead way to do this?
