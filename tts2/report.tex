@@ -19,11 +19,13 @@ In brute.py, each news story was first transformed to lowercase and tokenized on
 index.py improved upon brute.py by implementing a term-at-a-time indexing. The index was represented as a dictionary with tokens as keys and lists of story number/token count tuples as values. As in brute.py, tf-idf weighted cosine denominators were also cached for each story. When calculating tf-idf weighted cosine, partial story scores were stored in a dictionary. For 10,000 stories, index.py ran roughly 3.5 times faster than brute.py.
 
 \section{best.py}
-best.py included a number of refinements over index.py, as listed below. For 10,000 stories, best.py ran 17.7 times faster than index.py (62.8 times faster than brute.py). As measured against the provided pairs.ref, best.py has an accuracy of 91.13\%.
+best.py included a number of refinements over index.py, as listed below. For 10,000 stories, best.py ran 17.7 times faster than index.py (62.8 times faster than brute.py). As measured against the provided pairs.ref, best.py had an accuracy of 91.13\%.
 \subsection{Stop word removal}
-After initial tokenization using the same regular expression as overlap.py, all tokens from the English-language stop word list provided by \texttt{nltk} were removed. This was performed for both queries and documents, and increased average precision by 0.0088.
+After initial tokenization, all tokens from the English-language stop word list provided by \texttt{nltk} were removed. Additionally, domain-specific stop words (where idf < 3.38211) were removed. This increased speed by 10.34 times (measured on 10,000 stories), while lowering accuracy by 8.87\%. An additional speed improvement of 9.5\% could have been made at the expense of a further 0.78\% loss of accuracy, but this was deemed too likely to result in overfitting stop words to the given data.
 \subsection{Identical story checking}
-To account for morphological variation, each token was broken into constituent n-grams, which were then themselves added to the token list. This procedure was performed for both queries and documents. As stated in the 29th September, 2014 Text Technologies lecture, character n-grams of length 4 or 5 work best for European languages - in this case, 4-grams yielded an average precision advantage of 0.003 over 5-grams. Adding both 4- and 5-grams decreased average precision. Overall, this method increased average precision by 0.0066.
+A large number of ...
+\subsection{Pre-calculation of token idf}
+(counter idf)
 \subsection{Python-specific improvements}
 In both documents and queries, to capture meaningful pairings of words, bigrams from the stop-word-sanitized token list were themselves added to the token list. This improved average precision by 0.0033, and was found to be more effective than trigrams or both bigrams and trigrams.
 
