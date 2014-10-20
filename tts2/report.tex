@@ -12,33 +12,26 @@
 \section{Introduction}
 This report describes the implementation of two information retrieval algorithms, brute.py and index.py, as well as refinements to the latter as implemented in best.py.
 
-\section{brute.py and best.py}
+\section{brute.py and index.py}
 \subsection{brute.py}
-In overlap.py, each query and document was first transformed to lowercase and tokenized, with tokens matching the simple regular expression \texttt{[A-Za-z0-9]+}. For every combination of document and query, the score returned was the size of the intersection of the token sets for the document and query. This method resulted in an average precision of 0.1527.
-\subsection{tfidf.py}
-tfidf.py implemented the standard tf-idf algorithm, with k=2 and using the natural logarithm. For speed, df-scores for each token were pre-calculated. The tf-idf algorithm resulted in an average precision of 0.3248.
+In brute.py, each news story was first transformed to lowercase and tokenized on whitespace, following which the tf-idf weighted cosine denominator component for the story was computed. Then, for every prior story, the tf-idf weighted cosine was calculated, drawing from both a pre-computed dictionary of token idf scores and a list-based cache of tokenized story/tf-idf weighted cosine denominator component tuples. In this way, only the query-document-unique numerator of the tf-idf weighted cosine formula needed to be calculated (for all tokens in both the query and document).  If the score of the best matching document exceeded the given threshold, the result was written to a file and immediately flushed. Finally, the token/denominator tuple for the latest news story was added to the aforementioned cache.
+\subsection{index.py}
+index.py improved upon brute.py by implementing a term-at-a-time indexing. The index was represented as a dictionary with tokens as keys and lists of story number/token count tuples as values. As in brute.py, tf-idf weighted cosine denominators were also cached for each story. When calculating tf-idf weighted cosine, partial story scores were stored in a dictionary. For 10,000 stories, index.py ran roughly 3.5 times faster than brute.py.
 
 \section{best.py}
-best.py included a number of refinements over tfidf.py, as listed below. The average precision achieved by best.py was 0.3508.
+best.py included a number of refinements over index.py, as listed below. For 10,000 stories, best.py ran 17.7 times faster than index.py (62.8 times faster than brute.py). As measured against the provided pairs.ref, best.py has an accuracy of 91.13\%.
 \subsection{Stop word removal}
 After initial tokenization using the same regular expression as overlap.py, all tokens from the English-language stop word list provided by \texttt{nltk} were removed. This was performed for both queries and documents, and increased average precision by 0.0088.
-\subsection{Character n-grams}
+\subsection{Identical story checking}
 To account for morphological variation, each token was broken into constituent n-grams, which were then themselves added to the token list. This procedure was performed for both queries and documents. As stated in the 29th September, 2014 Text Technologies lecture, character n-grams of length 4 or 5 work best for European languages - in this case, 4-grams yielded an average precision advantage of 0.003 over 5-grams. Adding both 4- and 5-grams decreased average precision. Overall, this method increased average precision by 0.0066.
-\subsection{Bigrams}
+\subsection{Python-specific improvements}
 In both documents and queries, to capture meaningful pairings of words, bigrams from the stop-word-sanitized token list were themselves added to the token list. This improved average precision by 0.0033, and was found to be more effective than trigrams or both bigrams and trigrams.
-\subsection{Extended token set}
-For both documents and queries, the text was additionally tokenized via the regex \texttt{[A-Za-z0-9\symbol{92}.\symbol{92}-\symbol{92}\_\symbol{92}/]+}, which preserves e.g. the tokens "I.B.M." and "n-tuples". These extended tokens were then added to the token list, if not already present, with all punctuation intact. This resulted in a precision increase of 0.0022.
-\subsection{\texttt{k} optimization}
-The value of \texttt{k} within the standard formulation of tf-idf was hand-optimized to a value of 3.0, yielding a 0.0051 increase in average precision. The figure below demonstrates the observed effect of k on precision.
+
+\section{Comparison of algorithm running times}
 %\begin{figure}[ht!]
 %\centering
 %\includegraphics[width=90mm]{k_graph2.png}
 %\end{figure}
-\subsection{Unsuccessful techniques}
-The following techniques were implemented, but uniformly had a negative effect on average precision and, hence, were discarded:
-\begin{itemize}
-\item Weighting references - A scheme whereby documents had their tf-idf score slightly increased   proportionally to the scores of all documents that referenced them reduced average precision to 0.1949.
-\item Synonymy - For each token, synonyms of that token were calculated via the Expected Mutual Information Measure as presented in the Text Technologies lecture on 29th September 2014. Tokens were considered synonymous when the EMIM of the two terms was 2 standard deviations above the average. For performance reasons, EMIM was only calculated for tokens appearing in 10\%-0.67\% of documents. For each query, all tokens with synonyms had their synonyms added to the token list. Overall, this led to a .0090 reduction in average precision, with a significant increase in computation time.
-\end{itemize}
+
 
 \end{document}
