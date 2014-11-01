@@ -45,8 +45,8 @@ OUTPUT_FNAMES = (
 )
 TOKENIZATION_REGEX = r'''[\t\r\n\\~`!@#$%^&*()_\-+=[\]{}|:;"'<>,.?/\s]+'''
 STOPWORDS = frozenset(stopwords.words('english'))
-K = 4
-BITS = 32
+L = 4
+K = 32
 
 
 def counter(tokens):
@@ -66,9 +66,14 @@ def output(*args):
     return "{0} {1}\n".format(*sorted(args))
 
 
+def chunks(n, token):
+    assert not len(token) % n
+    return zip(*[token[x::n] for x in xrange(n)])
+
+
 def main():
     type_1s = defaultdict(set)
-    type_2s = [defaultdict(set)] * K
+    type_2s = [defaultdict(list)] * L
     with open(INPUT_FNAME, 'r') as f:
         type_1_f, type_2_f, type_3_f = [open(fname, 'w') for fname in OUTPUT_FNAMES]
 
@@ -94,17 +99,28 @@ def main():
             non_stopwords = [token for token in tokens if token not in STOPWORDS]
             token_freqs = counter(non_stopwords)
             hashed_tokens = [
-                map(
-                    lambda x: (-1 if x == '0' else 1) * token_freqs[token], 
-                    bin(int(hashlib.md5(token).hexdigest(), 16))[2:2 + BITS]
-                ) 
+                [
+                    (-1 if x == '0' else 1) * token_freqs[token]
+                    for x in
+                    bin(int(hashlib.md5(token).hexdigest(), 16))[2:2 + K]
+                ]
                 for token in 
                 non_stopwords
             ]
-            unbounded_hash = [0 if x < 1 else 1 for x in map(sum, zip(*hashed_tokens))]
-            # TODO: divide into K chunks
-            # TODO: then get matching docs (hashtable hits)
+            hashes = map(tuple, chunks(L, [0 if x < 1 else 1 for x in map(sum, zip(*hashed_tokens))]))
+            matching_docs = (
+                doc
+                for dict_, hash_ in
+                zip(type_2s, hashes)
+                for doc in
+                dict_[hash_]
+            )
             # TODO: then do cos comparison on these
+            exhaust(
+                dict_[hash_].append((line_id, token_freqs))
+                for dict_, hash_ in
+                zip(type_2s, hashes)
+            )
 
 
     exhaust(file_.close() for file_ in (type_1_f, type_2_f, type_3_f))
