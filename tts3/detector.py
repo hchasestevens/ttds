@@ -32,14 +32,29 @@ like program structure, classes, functions, etc.  Describe what you tried, why
 you tried it, how it improved results, etc.
 """
 import hashlib
-from _collections import defaultdict
+import re
+from collections import defaultdict
+
+from nltk.corpus import stopwords
 
 INPUT_FNAME = "data.train"
 OUTPUT_FNAMES = (
-    "type{}.dup".format(n + 1)
+    "type{0}.dup".format(n + 1)
     for n in 
     xrange(3)
 )
+TOKENIZATION_REGEX = r'''[\t\r\n\\~`!@#$%^&*()_\-+=[\]{}|:;"'<>,.?/\s]+'''
+STOPWORDS = frozenset(stopwords.words('english'))
+K = 4
+BITS = 32
+
+
+def counter(tokens):
+    """Psuedo-reimplementation of collections.Counter"""
+    d = defaultdict(int)
+    for token in tokens:
+        d[token] += 1
+    return d
 
 
 def exhaust(gen):  # may want to replace with with list comp w/o assignment
@@ -48,20 +63,23 @@ def exhaust(gen):  # may want to replace with with list comp w/o assignment
 
 
 def output(*args):
-    return "{} {}\n".format(*sorted(args))
+    return "{0} {1}\n".format(*sorted(args))
 
 
 def main():
-    type_1s = defaultdict(list)
+    type_1s = defaultdict(set)
+    type_2s = [defaultdict(set)] * K
     with open(INPUT_FNAME, 'r') as f:
         type_1_f, type_2_f, type_3_f = [open(fname, 'w') for fname in OUTPUT_FNAMES]
 
         for i, line in enumerate(f):
             print i, '\b'*10,
-            tokens = line.lower().split()  # Might as well do proper tokenization here
+            tokens = re.split(TOKENIZATION_REGEX, line.lower())  # Might as well do proper tokenization here
             line_id = tokens[0]
+            tokens = tokens[1:]
             idless_line = line[len(line_id):]
             
+            # Type 1
             raw_hash = hashlib.md5(idless_line).digest()
             type_1_results = type_1s[raw_hash]
             exhaust(
@@ -70,7 +88,24 @@ def main():
                 type_1_results
                 if other_line == idless_line
             )
-            type_1_results.append((line_id, idless_line))
+            type_1_results.add((line_id, idless_line))
+
+            # Type 2
+            non_stopwords = [token for token in tokens if token not in STOPWORDS]
+            token_freqs = counter(non_stopwords)
+            hashed_tokens = [
+                map(
+                    lambda x: (-1 if x == '0' else 1) * token_freqs[token], 
+                    bin(int(hashlib.md5(token).hexdigest(), 16))[2:2 + BITS]
+                ) 
+                for token in 
+                non_stopwords
+            ]
+            unbounded_hash = [0 if x < 1 else 1 for x in map(sum, zip(*hashed_tokens))]
+            # TODO: divide into K chunks
+            # TODO: then get matching docs (hashtable hits)
+            # TODO: then do cos comparison on these
+
 
     exhaust(file_.close() for file_ in (type_1_f, type_2_f, type_3_f))
 
