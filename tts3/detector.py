@@ -71,6 +71,12 @@ def chunks(n, token):
     return zip(*[token[x::n] for x in xrange(n)])
 
 
+def similarity(tokens_a, tokens_b):
+    set_a = frozenset(tokens_a)
+    set_b = frozenset(tokens_b)
+    return len(set_a & set_b) / float(len(set_a | set_b))
+
+
 def main():
     type_1s = defaultdict(set)
     type_2s = [defaultdict(list)] * L
@@ -115,13 +121,21 @@ def main():
                 for doc in
                 dict_[hash_]
             )
-            # TODO: then do cos comparison on these
+            matching_doc_ids = [
+                doc_id
+                for doc_id, doc_tokens in
+                set(matching_docs)
+                if similarity(token_freqs, doc_tokens) > 0.95
+            ]
+            if matching_doc_ids:
+                print
+                print line_id
+                raw_input(matching_doc_ids)
             exhaust(
-                dict_[hash_].append((line_id, token_freqs))
+                dict_[hash_].append((line_id, tuple(token_freqs)))
                 for dict_, hash_ in
                 zip(type_2s, hashes)
             )
-
 
     exhaust(file_.close() for file_ in (type_1_f, type_2_f, type_3_f))
 
