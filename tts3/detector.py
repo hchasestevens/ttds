@@ -84,7 +84,7 @@ def main():
         type_1_f, type_2_f, type_3_f = [open(fname, 'w') for fname in OUTPUT_FNAMES]
 
         for i, line in enumerate(f):
-            print i, '\b'*10,
+            #print i, '\b'*10,
             tokens = re.split(TOKENIZATION_REGEX, line.lower())  # Might as well do proper tokenization here
             line_id = tokens[0]
             tokens = tokens[1:]
@@ -125,12 +125,12 @@ def main():
                 doc_id
                 for doc_id, doc_tokens in
                 set(matching_docs)
-                if similarity(token_freqs, doc_tokens) > 0.95
+                if 1.0 > similarity(token_freqs, doc_tokens) > 0.95  # Type 1's, y'all
             ]
             if matching_doc_ids:
                 print
                 print line_id
-                raw_input(matching_doc_ids)
+                print matching_doc_ids
             exhaust(
                 dict_[hash_].append((line_id, tuple(token_freqs)))
                 for dict_, hash_ in
