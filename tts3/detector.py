@@ -69,11 +69,33 @@ def output(*args):
 
 def chunks(chunk_size, token):
     assert not len(token) % chunk_size
-    return zip(*[token[x::chunk_size] for x in xrange(chunk_size)])
+    return itertools.izip(*[token[x::chunk_size] for x in xrange(chunk_size)])
 
 
 def num_differences(set_a, set_b):
     return len(set_a | set_b) - len(set_a & set_b)
+
+
+def finn(tokens):
+    characterization = (token.isdigit() for token in tokens)
+    c = 100
+    best_score = 0
+    best_subseq = []
+    current_score = 0
+    current_subseq = []
+    for token, is_digit in itertools.izip(tokens, characterization):
+        if not is_digit:
+            current_score = max(current_score - 1, 0)
+            if not current_score:
+                current_subseq = []
+            else:
+                current_subseq.append(token)
+            continue
+        current_score += c
+        current_subseq.append(token)
+        if current_score > best_score:
+            best_score, best_subseq = current_score, current_subseq[:]
+    return best_subseq or tokens
 
 
 def main():
@@ -114,7 +136,7 @@ def main():
                 for token in 
                 non_stopwords
             ]
-            hashes = map(tuple, chunks(K / L, [0 if x < 1 else 1 for x in map(sum, itertools.izip(*hashed_tokens))]))
+            hashes = map(tuple, chunks(K / L, [0 if x < 1 else 1 for x in itertools.imap(sum, itertools.izip(*hashed_tokens))]))
             matching_docs = (
                 doc
                 for dict_, hash_ in
@@ -123,14 +145,12 @@ def main():
                 dict_[hash_]
             )
             token_set = frozenset(token_freqs)
-            matching_doc_ids = [
-                doc_id
+            exhaust(
+                type_2_f.write(output(doc_id, line_id))
                 for doc_id, doc_tokens in
                 set(matching_docs)
                 if num_differences(token_set, doc_tokens) < 3
-            ]
-            if matching_doc_ids:
-                print line_id, matching_doc_ids
+            )
             exhaust(
                 dict_[hash_].append((line_id, token_set))
                 for dict_, hash_ in
@@ -141,5 +161,8 @@ def main():
 
 
 if __name__ == '__main__':
+    import time
+    t = time.time()
     main()
+    print (time.time() - t) / 60.
 
