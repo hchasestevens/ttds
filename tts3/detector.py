@@ -46,8 +46,8 @@ OUTPUT_FNAMES = (
 )
 TOKENIZATION_REGEX = r'''[\t\r\n\\~`!@#$%^&*()_\-+=[\]{}|:;"'<>,.?/\s]+'''
 STOPWORDS = frozenset(stopwords.words('english'))
-L = 2
-K = 32
+L = 3
+K = 33
 
 
 def counter(tokens):
@@ -67,9 +67,9 @@ def output(*args):
     return "{0} {1}\n".format(*sorted(args))
 
 
-def chunks(n, token):
-    assert not len(token) % n
-    return zip(*[token[x::n] for x in xrange(n)])
+def chunks(chunk_size, token):
+    assert not len(token) % chunk_size
+    return zip(*[token[x::chunk_size] for x in xrange(chunk_size)])
 
 
 def num_differences(set_a, set_b):
@@ -109,7 +109,7 @@ def main():
                 [
                     (-1 if x == '0' else 1) * token_freqs[token]
                     for x in
-                    bin(int(hashlib.md5(token).hexdigest(), 16))[2:2 + K]
+                    bin(int(hashlib.md5(token).hexdigest(), 16))[2:].zfill(128)[:K]
                 ]
                 for token in 
                 non_stopwords
@@ -127,7 +127,7 @@ def main():
                 doc_id
                 for doc_id, doc_tokens in
                 set(matching_docs)
-                if 0 < num_differences(token_set, doc_tokens) < 3  # Type 1's, y'all
+                if num_differences(token_set, doc_tokens) < 3
             ]
             if matching_doc_ids:
                 print line_id, matching_doc_ids
