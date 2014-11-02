@@ -34,6 +34,7 @@ you tried it, how it improved results, etc.
 import hashlib
 import re
 from collections import defaultdict
+import itertools
 
 from nltk.corpus import stopwords
 
@@ -45,7 +46,7 @@ OUTPUT_FNAMES = (
 )
 TOKENIZATION_REGEX = r'''[\t\r\n\\~`!@#$%^&*()_\-+=[\]{}|:;"'<>,.?/\s]+'''
 STOPWORDS = frozenset(stopwords.words('english'))
-L = 4
+L = 2
 K = 32
 
 
@@ -71,20 +72,18 @@ def chunks(n, token):
     return zip(*[token[x::n] for x in xrange(n)])
 
 
-def similarity(tokens_a, tokens_b):
-    set_a = frozenset(tokens_a)
-    set_b = frozenset(tokens_b)
-    return len(set_a & set_b) / float(len(set_a | set_b))
+def num_differences(set_a, set_b):
+    return len(set_a | set_b) - len(set_a & set_b)
 
 
 def main():
     type_1s = defaultdict(set)
-    type_2s = [defaultdict(list)] * L
+    type_2s = [defaultdict(list) for __ in xrange(L)]
     with open(INPUT_FNAME, 'r') as f:
         type_1_f, type_2_f, type_3_f = [open(fname, 'w') for fname in OUTPUT_FNAMES]
 
         for i, line in enumerate(f):
-            #print i, '\b'*10,
+            print i, '\b'*10,
             tokens = re.split(TOKENIZATION_REGEX, line.lower())  # Might as well do proper tokenization here
             line_id = tokens[0]
             tokens = tokens[1:]
@@ -93,12 +92,14 @@ def main():
             # Type 1
             raw_hash = hashlib.md5(idless_line).digest()
             type_1_results = type_1s[raw_hash]
-            exhaust(
+            if [
                 type_1_f.write(output(other_id, line_id))
                 for other_id, other_line in
                 type_1_results
                 if other_line == idless_line
-            )
+            ]:
+                #type_1_results.add((line_id, idless_line))
+                continue
             type_1_results.add((line_id, idless_line))
 
             # Type 2
@@ -113,28 +114,27 @@ def main():
                 for token in 
                 non_stopwords
             ]
-            hashes = map(tuple, chunks(L, [0 if x < 1 else 1 for x in map(sum, zip(*hashed_tokens))]))
+            hashes = map(tuple, chunks(K / L, [0 if x < 1 else 1 for x in map(sum, itertools.izip(*hashed_tokens))]))
             matching_docs = (
                 doc
                 for dict_, hash_ in
-                zip(type_2s, hashes)
+                itertools.izip(type_2s, hashes)
                 for doc in
                 dict_[hash_]
             )
+            token_set = frozenset(token_freqs)
             matching_doc_ids = [
                 doc_id
                 for doc_id, doc_tokens in
                 set(matching_docs)
-                if 1.0 > similarity(token_freqs, doc_tokens) > 0.95  # Type 1's, y'all
+                if 0 < num_differences(token_set, doc_tokens) < 3  # Type 1's, y'all
             ]
             if matching_doc_ids:
-                print
-                print line_id
-                print matching_doc_ids
+                print line_id, matching_doc_ids
             exhaust(
-                dict_[hash_].append((line_id, tuple(token_freqs)))
+                dict_[hash_].append((line_id, token_set))
                 for dict_, hash_ in
-                zip(type_2s, hashes)
+                itertools.izip(type_2s, hashes)
             )
 
     exhaust(file_.close() for file_ in (type_1_f, type_2_f, type_3_f))
