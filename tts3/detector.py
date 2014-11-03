@@ -105,6 +105,8 @@ def main():
         type_1_f, type_2_f = [open(fname, 'w') for fname in OUTPUT_FNAMES]
 
         for i, line in enumerate(f):
+            if not i % 50:
+                print i, '\b'*10,
             tokens = re.split(TOKENIZATION_REGEX, line.lower())  # Might as well do proper tokenization here
             line_id = tokens[0]
             tokens = tokens[1:]
@@ -114,6 +116,7 @@ def main():
             raw_hash = hashlib.md5(idless_line).digest()
             try:
                 type_1_f.write(output(type_1s[raw_hash], line_id))
+                type_1_f.flush()
                 continue
             except KeyError:
                 type_1s[raw_hash] = line_id
@@ -146,6 +149,7 @@ def main():
                     set(matching_docs)
                     if num_differences(token_set, doc_tokens) < 3
                 )
+                type_2_f.flush()
                 continue
             except StopIteration:
                 pass
@@ -168,6 +172,7 @@ def main2():
         type_3_f = open('type3.dup', 'w')
 
         for i, line in enumerate(f):
+            
             tokens = re.split(TOKENIZATION_REGEX, line.lower())  # Might as well do proper tokenization here
             line_id = tokens[0]
             tokens = finn(tokens[1:])
@@ -176,6 +181,7 @@ def main2():
             raw_hash = hashlib.md5(' '.join(tokens)).digest()
             try:
                 type_3_f.write(output(type_1s[raw_hash], line_id))
+                continue
             except KeyError:
                 type_1s[raw_hash] = line_id
 
@@ -222,5 +228,6 @@ def main2():
 
 if __name__ == '__main__':
     main2()
+    print 'x'
     main()
 
