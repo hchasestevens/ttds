@@ -105,9 +105,8 @@ def main(t):
         type_1_f, type_2_f, type_3_f = [open(fname, 'w') for fname in OUTPUT_FNAMES]
 
         for i, line in enumerate(f):
-            print i, '\b'*10,
-            if ((time.time() - t) / 60.) > 30:
-                quit()
+            if (not i % 50) and ((time.time() - t) / 60.) > 29.5:
+                break
             tokens = re.split(TOKENIZATION_REGEX, line.lower())  # Might as well do proper tokenization here
             line_id = tokens[0]
             tokens = tokens[1:]
@@ -158,7 +157,11 @@ def main(t):
                 itertools.izip(type_2s, hashes)
             )
 
+        print i
+
     exhaust(file_.close() for file_ in (type_1_f, type_2_f, type_3_f))
+
+
 
 
 if __name__ == '__main__':
