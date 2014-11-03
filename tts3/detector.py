@@ -38,7 +38,7 @@ import itertools
 
 from nltk.corpus import stopwords
 
-INPUT_FNAME = "data.train"
+INPUT_FNAME = "data.test"
 OUTPUT_FNAMES = (
     "type{0}.dup".format(n + 1)
     for n in 
@@ -46,8 +46,8 @@ OUTPUT_FNAMES = (
 )
 TOKENIZATION_REGEX = r'''[\t\r\n\\~`!@#$%^&*()_\-+=[\]{}|:;"'<>,.?/\s]+'''
 STOPWORDS = frozenset(stopwords.words('english'))
-L = 3
-K = 33
+L = 1
+K = 28
 
 
 def counter(tokens):
@@ -98,14 +98,16 @@ def finn(tokens):
     return best_subseq or tokens
 
 
-def main():
-    type_1s = defaultdict(set)
+def main(t):
+    type_1s = {}
     type_2s = [defaultdict(list) for __ in xrange(L)]
     with open(INPUT_FNAME, 'r') as f:
         type_1_f, type_2_f, type_3_f = [open(fname, 'w') for fname in OUTPUT_FNAMES]
 
         for i, line in enumerate(f):
             print i, '\b'*10,
+            if ((time.time() - t) / 60.) > 30:
+                quit()
             tokens = re.split(TOKENIZATION_REGEX, line.lower())  # Might as well do proper tokenization here
             line_id = tokens[0]
             tokens = tokens[1:]
@@ -113,16 +115,11 @@ def main():
             
             # Type 1
             raw_hash = hashlib.md5(idless_line).digest()
-            type_1_results = type_1s[raw_hash]
-            if [
-                type_1_f.write(output(other_id, line_id))
-                for other_id, other_line in
-                type_1_results
-                if other_line == idless_line
-            ]:
-                #type_1_results.add((line_id, idless_line))
+            try:
+                type_1_f.write(output(type_1s[raw_hash], line_id))
                 continue
-            type_1_results.add((line_id, idless_line))
+            except KeyError:
+                type_1s[raw_hash] = line_id
 
             # Type 2
             non_stopwords = [token for token in tokens if token not in STOPWORDS]
@@ -145,12 +142,16 @@ def main():
                 dict_[hash_]
             )
             token_set = frozenset(token_freqs)
-            exhaust(
-                type_2_f.write(output(doc_id, line_id))
-                for doc_id, doc_tokens in
-                set(matching_docs)
-                if num_differences(token_set, doc_tokens) < 3
-            )
+            try:
+                next(
+                    type_2_f.write(output(doc_id, line_id))
+                    for doc_id, doc_tokens in
+                    set(matching_docs)
+                    if num_differences(token_set, doc_tokens) < 3
+                )
+                continue
+            except StopIteration:
+                pass
             exhaust(
                 dict_[hash_].append((line_id, token_set))
                 for dict_, hash_ in
@@ -163,6 +164,6 @@ def main():
 if __name__ == '__main__':
     import time
     t = time.time()
-    main()
+    main(t)
     print (time.time() - t) / 60.
 

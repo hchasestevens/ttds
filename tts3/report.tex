@@ -1,0 +1,31 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
+
+\begin{document}
+
+\title{Text Technologies for Data Science: Assessment 3}
+\author{s1107496}
+
+\maketitle
+
+\section{Introduction}
+This report describes the implementation of algorithms to detect duplicate (type 1), near duplicate (type 2), and number-heavy exact and near duplicate (type 3) news stories.
+
+\section{Type 1 duplicate detection (task 2)}
+Through manual examination, type 1 duplicates were determined to be exact duplicates. To detect these, a hash table with keys consisting of untokenized stories (with IDs removed) and values consisting of sets of story IDs was maintained. If, for a given key, there existed a matching story, the corresponding IDs were written to file. Otherwise, the story/ID key/value pair for the current line was written to the hash table.
+
+\section{Type 2 duplicate detection (task 3)}
+\subsection{Implementation overview}
+To detect type 2 duplicates, stories were first tokenized by splitting on whitespace and other non-alphanumeric characters, using the regular expression suggested by Victor Lavrenko. Stories that had already been detected as type 1 duplicates were skipped. Stopwords, as given by \texttt{nltk}, were filtered out before frequencies for each token were computed. A simhash implementation using the md5 hashing algorithm from \texttt{hashlib} was then used to find potential duplicates, with tokens weighted by frequency. A difference metric between these potential duplicates was then computed by subtracting the size of the union of their token sets from the size of the intersection of their token sets; the first (if any) duplicate with fewer than three differences was written to file.
+\subsection{\texttt{K} and \texttt{L} optimization}
+
+\section{Comparison of algorithm running times}
+Tests were run on a DICE machine with an i5 processor and 8GB RAM.
+%\begin{figure}[ht!]
+%\centering
+%\includegraphics[width=165mm]{algos2.png}
+%\end{figure}
+%
+
+\end{document}
