@@ -42,7 +42,7 @@ INPUT_FNAME = "data.test"
 OUTPUT_FNAMES = (
     "type{0}.dup".format(n + 1)
     for n in 
-    xrange(3)
+    xrange(2)
 )
 TOKENIZATION_REGEX = r'''[\t\r\n\\~`!@#$%^&*()_\-+=[\]{}|:;"'<>,.?/\s]+'''
 STOPWORDS = frozenset(stopwords.words('english'))
@@ -98,15 +98,13 @@ def finn(tokens):
     return best_subseq or tokens
 
 
-def main(t):
+def main():
     type_1s = {}
     type_2s = [defaultdict(list) for __ in xrange(L)]
     with open(INPUT_FNAME, 'r') as f:
-        type_1_f, type_2_f, type_3_f = [open(fname, 'w') for fname in OUTPUT_FNAMES]
+        type_1_f, type_2_f = [open(fname, 'w') for fname in OUTPUT_FNAMES]
 
         for i, line in enumerate(f):
-            if (not i % 50) and ((time.time() - t) / 60.) > 29.5:
-                break
             tokens = re.split(TOKENIZATION_REGEX, line.lower())  # Might as well do proper tokenization here
             line_id = tokens[0]
             tokens = tokens[1:]
@@ -159,14 +157,70 @@ def main(t):
 
         print i
 
-    exhaust(file_.close() for file_ in (type_1_f, type_2_f, type_3_f))
+    exhaust(file_.close() for file_ in (type_1_f, type_2_f))
 
+
+def main2():
+    K_, L_ = 33, 3
+    type_1s = {}
+    type_2s = [defaultdict(list) for __ in xrange(L_)]
+    with open('data.finn', 'r') as f:
+        type_3_f = open('type3.dup', 'w')
+
+        for i, line in enumerate(f):
+            tokens = re.split(TOKENIZATION_REGEX, line.lower())  # Might as well do proper tokenization here
+            line_id = tokens[0]
+            tokens = finn(tokens[1:])
+            
+            # Type 1
+            raw_hash = hashlib.md5(' '.join(tokens)).digest()
+            try:
+                type_3_f.write(output(type_1s[raw_hash], line_id))
+            except KeyError:
+                type_1s[raw_hash] = line_id
+
+            # Type 2
+            non_stopwords = [token for token in tokens if token not in STOPWORDS]
+            token_freqs = counter(non_stopwords)
+            hashed_tokens = [
+                [
+                    (-1 if x == '0' else 1) * token_freqs[token]
+                    for x in
+                    bin(int(hashlib.md5(token).hexdigest(), 16))[2:].zfill(128)[:K_]
+                ]
+                for token in 
+                non_stopwords
+            ]
+            hashes = map(tuple, chunks(K_ / L_, [0 if x < 1 else 1 for x in itertools.imap(sum, itertools.izip(*hashed_tokens))]))
+            matching_docs = (
+                doc
+                for dict_, hash_ in
+                itertools.izip(type_2s, hashes)
+                for doc in
+                dict_[hash_]
+            )
+            token_set = frozenset(token_freqs)
+            try:
+                next(
+                    type_3_f.write(output(doc_id, line_id))
+                    for doc_id, doc_tokens in
+                    set(matching_docs)
+                    if num_differences(token_set, doc_tokens) < 3
+                )
+                continue
+            except StopIteration:
+                pass
+            exhaust(
+                dict_[hash_].append((line_id, token_set))
+                for dict_, hash_ in
+                itertools.izip(type_2s, hashes)
+            )
+
+    type_3_f.close()
 
 
 
 if __name__ == '__main__':
-    import time
-    t = time.time()
-    main(t)
-    print (time.time() - t) / 60.
+    main2()
+    main()
 
