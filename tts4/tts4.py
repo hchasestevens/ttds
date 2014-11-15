@@ -45,7 +45,9 @@ def main():
             emails
         }
     print page_ranks['jeff.dasovich@enron.com']
-    assert abs(page_ranks['jeff.dasovich@enron.com'] - 0.002059) < 0.0001
+    print page_ranks['john.lavorato@enron.com']
+    assert abs(page_ranks['jeff.dasovich@enron.com'] - 0.0020586) < 0.000001
+    assert abs(page_ranks['john.lavorato@enron.com'] - 0.0015712) < 0.000001
 
     print sorted(page_ranks.iterkeys(), key=page_ranks.get, reverse=True)[:10]
 
