@@ -14,11 +14,11 @@ def main():
         split_lines = (line.split() for line in f)
         message_groups = itertools.groupby(split_lines, operator.itemgetter(1))
         for from_email, message_group in message_groups:
-            emails.add(from_email)
             from_email_messages = messages[from_email]
             from_email_connections = connections[from_email]
             for message_id, __, to_email in message_group:
                 if to_email == from_email: continue
+                emails.add(from_email)
                 emails.add(to_email)
                 from_email_messages[to_email].add(message_id)
                 num_out_connections[from_email] += 1  # nice sum for from_email
@@ -33,7 +33,6 @@ def main():
     sink_nodes = frozenset(email for email in emails if not connections[email])
     for i in xrange(10):
         print i + 1
-        print page_ranks['jeff.dasovich@enron.com']
         old_page_ranks = copy.copy(page_ranks)
         sink_node_mass = sum(old_page_ranks[sink_node] for sink_node in sink_nodes)
         page_ranks = {
@@ -45,6 +44,7 @@ def main():
             for node_to_update in
             emails
         }
+    print page_ranks['jeff.dasovich@enron.com']
     assert abs(page_ranks['jeff.dasovich@enron.com'] - 0.002059) < 0.0001
 
     print sorted(page_ranks.iterkeys(), key=page_ranks.get, reverse=True)[:10]
