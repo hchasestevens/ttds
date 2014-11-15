@@ -25,12 +25,15 @@ def main():
                 from_email_connections[to_email] += 1
                 pointing_to_node[to_email].add(from_email)
 
+    print len([email for email in emails if not connections[email]])
+
     num_nodes = float(len(emails))
     initial_pagerank = 1. / num_nodes 
     lambda_ = 0.8
     page_ranks = {email: initial_pagerank for email in emails}
     for i in xrange(10):
-        print i
+        print i + 1
+        print page_ranks['jeff.dasovich@enron.com']
         old_page_ranks = copy.copy(page_ranks)
         page_ranks = {
             node_to_update: lambda_ * sum(
@@ -43,6 +46,9 @@ def main():
         }
 
     print sorted(page_ranks.iterkeys(), key=page_ranks.get, reverse=True)[:10]
+
+    print page_ranks['jeff.dasovich@enron.com']
+    assert abs(page_ranks['jeff.dasovich@enron.com'] - 0.002059) < 0.0001
 
 
 if __name__ == "__main__":
