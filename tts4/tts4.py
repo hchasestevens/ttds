@@ -6,6 +6,14 @@ import math
 import re
 
 
+def counter(items):
+    """Psuedo-reimplementation of collections.Counter"""
+    d = defaultdict(int)
+    for item in items:
+        d[item] += 1
+    return d
+
+
 def main():
     messages = defaultdict(lambda: defaultdict(set))
     connections = defaultdict(lambda: defaultdict(int))
@@ -92,8 +100,8 @@ def main():
         # Normalize:
         hub_sum_squares = math.sqrt(sum(value ** 2 for value in hubs.itervalues()))
         authority_sum_squares = math.sqrt(sum(value ** 2 for value in authorities.itervalues()))
-        hubs = dict((k, v) / hub_sum_squares for k, v in hubs.iteritems())
-        authorities = dict((k, v) / authority_sum_squares for k, v in authorities.iteritems())
+        hubs = dict((k, v / hub_sum_squares) for k, v in hubs.iteritems())
+        authorities = dict((k, v / authority_sum_squares) for k, v in authorities.iteritems())
     
     print
     print hubs['jeff.dasovich@enron.com']
@@ -114,10 +122,14 @@ def main():
     print
     print best_authorities & best_pagerank
     for a, b in itertools.product(best_authorities, best_authorities):
-        for message_id in filter(bool, messages[a][b]):
-            print a, b
-            __ = raw_input(message_subjects[message_id])
-        print
+        word_cloud = counter(word 
+            for message_id in filter(bool, messages[a][b])
+            for word in message_subjects[message_id]
+            if word not in stopwords
+        )
+        if word_cloud:
+            print sorted(word_cloud, key=word_cloud.get, reverse=True)[:25]
+            print
 
 
 
