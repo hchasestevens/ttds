@@ -114,10 +114,6 @@ def main():
     assert abs(page_ranks['jeff.dasovich@enron.com'] - 0.0020586) < 0.000001
     assert abs(page_ranks['john.lavorato@enron.com'] - 0.0015712) < 0.000001
 
-    print hubs['andrew.fastow@enron.com']
-    print authorities['andrew.fastow@enron.com']
-    print page_ranks['andrew.fastow@enron.com'] 
-
     best_hubs = sorted(((v, k) for k, v in hubs.iteritems()), reverse=True)[:100]
     best_authorities = sorted(((v, k) for k, v in authorities.iteritems()), reverse=True)[:100]
     best_pageranks = sorted(((v, k) for k, v in page_ranks.iteritems()), reverse=True)[:100]
@@ -129,13 +125,14 @@ def main():
     with open('pr.txt', 'w') as f:
         f.write('\n'.join('{0:.6f} {1}'.format(*pr) for pr in best_pageranks))
 
+    # Get query from terms most used when high-pageranked people talk to eachother
     best_hubs = [email for __, email in best_hubs]
     best_authorities = [email for __, email in best_authorities]
     best_pageranks = [email for __, email in best_pageranks]
-    best_best_pageranks = frozenset(best_pageranks[:7])
-    print best_pageranks[:10]
+    top_ten_pageranks = frozenset(best_pageranks[:10])
+    print top_ten_pageranks
     meta_wordcloud = defaultdict(int)
-    for a, b in itertools.product(best_best_pageranks, best_best_pageranks):
+    for a, b in itertools.product(top_ten_pageranks, top_ten_pageranks):
         word_cloud = counter(word 
             for message_id in filter(bool, messages[a][b])
             for word in message_subjects[message_id]
@@ -144,8 +141,41 @@ def main():
         if word_cloud:
             for word, count in word_cloud.iteritems():
                 meta_wordcloud[word] += count
-    most_important_words = sorted(meta_wordcloud, key=meta_wordcloud.get, reverse=True)[:10]
+    most_important_words = dict(sorted(meta_wordcloud.iteritems(), key=operator.itemgetter(1), reverse=True)[:10])
     print most_important_words
+    query = dict((k, v * idf[k]) for k, v in most_important_words.iteritems())
+    print
+
+    # Each "document" is all words sent to or from an email address
+    documents = defaultdict(lambda: defaultdict(int))
+    document_lengths = defaultdict(int)
+    for message_id, message_subject in message_subjects.iteritems():
+        for email in message_emails[message_id]:
+            for token in message_subject:
+                documents[email][token] += 1
+                document_lengths[email] += 1
+    average_document_length = sum(document_lengths.itervalues()) / float(len(document_lengths))
+
+    # Perform pagerank-weighted tf-idf
+    best_emails = sorted(
+        emails,
+        key=(
+            lambda email: sum(
+                query[word] *
+                documents[email][word] 
+                / (documents[email][word] + (document_lengths[email] / average_document_length))
+                for word in
+                set(documents[email]) & set(query)
+            ) * page_ranks[email]
+        ),
+        reverse=True
+    )
+    print best_emails.index('greg.whalley@enron.com')
+    best_emails = frozenset(best_emails[:10])
+
+    print 'key figures', best_emails
+    print 'key figures not in top 10 PR', best_emails - top_ten_pageranks
+    print
 
     interesting_email_counts = counter(
         email
@@ -156,15 +186,13 @@ def main():
     interesting_email_counts = dict(
         (email, 
          float(count) 
-         * max(d[email] for d in (page_ranks, )) 
-         #/ ((num_out_connections[email] + from_email_connections[email]) or float('inf'))
+         * page_ranks[email]
          / (math.sqrt(num_out_connections[email] + from_email_connections[email]) or float('inf'))
         )
         for email, count
         in interesting_email_counts.iteritems()
     )
-    print sorted(interesting_email_counts, key=interesting_email_counts.get, reverse=True)[:10]
-    print sorted(interesting_email_counts, key=interesting_email_counts.get, reverse=True)[10:20]
+    print "old method", sorted(interesting_email_counts, key=interesting_email_counts.get, reverse=True)[:10]
 
 
 
