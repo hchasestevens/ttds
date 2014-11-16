@@ -114,6 +114,10 @@ def main():
     assert abs(page_ranks['jeff.dasovich@enron.com'] - 0.0020586) < 0.000001
     assert abs(page_ranks['john.lavorato@enron.com'] - 0.0015712) < 0.000001
 
+    print hubs['andrew.fastow@enron.com']
+    print authorities['andrew.fastow@enron.com']
+    print page_ranks['andrew.fastow@enron.com'] 
+
     best_hubs = sorted(((v, k) for k, v in hubs.iteritems()), reverse=True)[:100]
     best_authorities = sorted(((v, k) for k, v in authorities.iteritems()), reverse=True)[:100]
     best_pageranks = sorted(((v, k) for k, v in page_ranks.iteritems()), reverse=True)[:100]
@@ -129,6 +133,7 @@ def main():
     best_authorities = [email for __, email in best_authorities]
     best_pageranks = [email for __, email in best_pageranks]
     best_best_pageranks = frozenset(best_pageranks[:7])
+    print best_pageranks[:10]
     meta_wordcloud = defaultdict(int)
     for a, b in itertools.product(best_best_pageranks, best_best_pageranks):
         word_cloud = counter(word 
@@ -153,6 +158,7 @@ def main():
          float(count) 
          * max(d[email] for d in (page_ranks, )) 
          #/ ((num_out_connections[email] + from_email_connections[email]) or float('inf'))
+         / (math.sqrt(num_out_connections[email] + from_email_connections[email]) or float('inf'))
         )
         for email, count
         in interesting_email_counts.iteritems()
