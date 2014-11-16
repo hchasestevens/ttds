@@ -20,6 +20,8 @@ def main():
     pointing_to_node = defaultdict(set)
     num_out_connections = defaultdict(float)
     emails = set()
+    message_emails = defaultdict(set)
+    edges = defaultdict(int)
     with open('graph.txt') as f:
         split_lines = (line.lower().split() for line in f)
         message_groups = itertools.groupby(split_lines, operator.itemgetter(1))
@@ -30,12 +32,15 @@ def main():
                 if to_email == from_email: continue
                 emails.add(from_email)
                 emails.add(to_email)
+                message_emails[message_id].add(from_email)
+                message_emails[message_id].add(to_email)
                 from_email_messages[to_email].add(message_id)
                 num_out_connections[from_email] += 1  # nice sum for from_email
                 from_email_connections[to_email] += 1
                 pointing_to_node[to_email].add(from_email)
 
     message_subjects = {}
+    messages_mentioning = defaultdict(set)
     token_counts = defaultdict(float)
     with open('subject.txt') as f:
         for message_id, message_subject in (line.split('  ', 1) for line in f):
@@ -43,6 +48,7 @@ def main():
             message_subjects[message_id] = subject_tokens
             for token in set(subject_tokens):
                 token_counts[token] += 1
+                messages_mentioning[token].add(message_id)
     num_messages = len(message_subjects)
     idf = dict((token, math.log(num_messages/count)) for token, count in token_counts.iteritems())
     stopwords = frozenset(sorted(idf.iterkeys(), key=idf.get)[:50])
@@ -118,33 +124,41 @@ def main():
         f.write('\n'.join('{0:.6f} {1}'.format(*auth) for auth in best_authorities))
     with open('pr.txt', 'w') as f:
         f.write('\n'.join('{0:.6f} {1}'.format(*pr) for pr in best_pageranks))
-    #print best_hubs
-    #print best_authorities
-    #print best_pagerank
-    #print
 
-    # These are pretty interesting ("isda"):
-    #for a, b in itertools.product(best_pagerank, best_pagerank):
-    #    word_cloud = counter(word 
-    #        for message_id in filter(bool, messages[a][b])
-    #        for word in message_subjects[message_id]
-    #        if word not in stopwords
-    #    )
-    #    if word_cloud:
-    #        print a, b
-    #        print sorted(word_cloud, key=word_cloud.get, reverse=True)[:25]
-    #        __ = raw_input()
+    best_hubs = [email for __, email in best_hubs]
+    best_authorities = [email for __, email in best_authorities]
+    best_pageranks = [email for __, email in best_pageranks]
+    best_best_pageranks = frozenset(best_pageranks[:7])
+    meta_wordcloud = defaultdict(int)
+    for a, b in itertools.product(best_best_pageranks, best_best_pageranks):
+        word_cloud = counter(word 
+            for message_id in filter(bool, messages[a][b])
+            for word in message_subjects[message_id]
+            if word not in stopwords
+        )
+        if word_cloud:
+            for word, count in word_cloud.iteritems():
+                meta_wordcloud[word] += count
+    most_important_words = sorted(meta_wordcloud, key=meta_wordcloud.get, reverse=True)[:10]
+    print most_important_words
 
-    #for a, b in itertools.product(best_pagerank, best_pagerank):
-    #    word_cloud = counter(word 
-    #        for message_id in filter(bool, messages[a][b])
-    #        for word in message_subjects[message_id]
-    #        if word not in stopwords
-    #    )
-    #    if word_cloud:
-    #        print a, b
-    #        print sorted(word_cloud, key=lambda x: word_cloud.get(x) * idf[x], reverse=True)[:25]
-    #        __ = raw_input()
+    interesting_email_counts = counter(
+        email
+        for word in most_important_words
+        for m in messages_mentioning[word]
+        for email in message_emails[m]
+    )
+    interesting_email_counts = dict(
+        (email, 
+         float(count) 
+         * max(d[email] for d in (page_ranks, )) 
+         #/ ((num_out_connections[email] + from_email_connections[email]) or float('inf'))
+        )
+        for email, count
+        in interesting_email_counts.iteritems()
+    )
+    print sorted(interesting_email_counts, key=interesting_email_counts.get, reverse=True)[:10]
+    print sorted(interesting_email_counts, key=interesting_email_counts.get, reverse=True)[10:20]
 
 
 
