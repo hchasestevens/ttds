@@ -31,21 +31,23 @@ def main():
     token_counts = defaultdict(float)
     with open('subject.txt') as f:
         for message_id, message_subject in (line.split('  ', 1) for line in f):
-            subject_tokens = re.split('\W+', message_subject)
+            subject_tokens = filter(bool, re.split('\W+', message_subject.lower()))
             message_subjects[message_id] = subject_tokens
-            for token in subject_tokens:
+            for token in set(subject_tokens):
                 token_counts[token] += 1
-
+    num_messages = len(message_subjects)
+    idf = dict((token, math.log(num_messages/count)) for token, count in token_counts.iteritems())
+    stopwords = frozenset(sorted(idf.iterkeys(), key=idf.get)[:50])
 
     num_nodes = float(len(emails))
 
     initial_pagerank = 1. / num_nodes 
     lambda_ = 0.8
-    page_ranks = {email: initial_pagerank for email in emails}
+    page_ranks = dict((email, initial_pagerank) for email in emails)
     sink_nodes = frozenset(email for email in emails if not connections[email])
     
     initial_hub_authority_score = 1. / math.sqrt(num_nodes)
-    hubs = {email: initial_hub_authority_score for email in emails}
+    hubs = dict((email, initial_hub_authority_score) for email in emails)
     authorities = copy.copy(hubs)
 
     for i in xrange(20):
@@ -55,43 +57,43 @@ def main():
             # Update pagerank
             old_page_ranks = copy.copy(page_ranks)
             sink_node_mass = sum(old_page_ranks[sink_node] for sink_node in sink_nodes)
-            page_ranks = {
-                node_to_update: lambda_ * sum(
+            page_ranks = dict(
+                (node_to_update, lambda_ * sum(
                     connections[node][node_to_update] * old_page_ranks[node] / num_out_connections[node]
                     for node in 
                     pointing_to_node[node_to_update]
-                ) + (1 - lambda_ + lambda_ * sink_node_mass) / num_nodes
+                ) + (1 - lambda_ + lambda_ * sink_node_mass) / num_nodes)
                 for node_to_update in
                 emails
-            }
+            )
 
         # Update H&A
         old_hubs = copy.copy(hubs)
         old_authorities = copy.copy(authorities)
-        hubs = {
-            node_to_update: sum(
+        hubs = dict(
+            (node_to_update, sum(
                 old_authorities[node] * weight
                 for node, weight in
                 connections[node_to_update].iteritems()
-            )
+            ))
             for node_to_update in 
             emails
-        }
-        authorities = {
-            node_to_update: sum(
+        )
+        authorities = dict(
+            (node_to_update, sum(
                 old_hubs[node] * connections[node][node_to_update]
                 for node in
                 pointing_to_node[node_to_update]
-            )
+            ))
             for node_to_update in
             emails
-        }
+        )
 
         # Normalize:
         hub_sum_squares = math.sqrt(sum(value ** 2 for value in hubs.itervalues()))
         authority_sum_squares = math.sqrt(sum(value ** 2 for value in authorities.itervalues()))
-        hubs = {k: v / hub_sum_squares for k, v in hubs.iteritems()}
-        authorities = {k: v / authority_sum_squares for k, v in authorities.iteritems()}
+        hubs = dict((k, v) / hub_sum_squares for k, v in hubs.iteritems())
+        authorities = dict((k, v) / authority_sum_squares for k, v in authorities.iteritems())
     
     print
     print hubs['jeff.dasovich@enron.com']
@@ -111,11 +113,11 @@ def main():
     print best_pagerank
     print
     print best_authorities & best_pagerank
-    #for a, b in itertools.product(best_authorities, best_authorities):
-    #    for message_id in messages[a][b]:
-    #        print a, b
-    #        __ = raw_input(message_subjects[message_id])
-    #    print
+    for a, b in itertools.product(best_authorities, best_authorities):
+        for message_id in filter(bool, messages[a][b]):
+            print a, b
+            __ = raw_input(message_subjects[message_id])
+        print
 
 
 
