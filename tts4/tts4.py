@@ -103,33 +103,48 @@ def main():
         hubs = dict((k, v / hub_sum_squares) for k, v in hubs.iteritems())
         authorities = dict((k, v / authority_sum_squares) for k, v in authorities.iteritems())
     
-    print
-    print hubs['jeff.dasovich@enron.com']
-    print authorities['jeff.dasovich@enron.com']
-    print page_ranks['jeff.dasovich@enron.com']
-    print
     assert abs(hubs['jeff.dasovich@enron.com'] - 0.001006) < 0.00001
     assert abs(authorities['jeff.dasovich@enron.com'] - 0.000210) < 0.00001
     assert abs(page_ranks['jeff.dasovich@enron.com'] - 0.0020586) < 0.000001
     assert abs(page_ranks['john.lavorato@enron.com'] - 0.0015712) < 0.000001
 
-    best_hubs = frozenset(sorted(hubs.iterkeys(), key=hubs.get, reverse=True)[:10])
-    best_authorities = frozenset(sorted(authorities.iterkeys(), key=authorities.get, reverse=True)[:10])
-    best_pagerank = frozenset(sorted(page_ranks.iterkeys(), key=page_ranks.get, reverse=True)[:10])
-    print best_hubs
-    print best_authorities
-    print best_pagerank
-    print
-    print best_authorities & best_pagerank
-    for a, b in itertools.product(best_authorities, best_authorities):
-        word_cloud = counter(word 
-            for message_id in filter(bool, messages[a][b])
-            for word in message_subjects[message_id]
-            if word not in stopwords
-        )
-        if word_cloud:
-            print sorted(word_cloud, key=word_cloud.get, reverse=True)[:25]
-            print
+    best_hubs = sorted(((v, k) for k, v in hubs.iteritems()), reverse=True)[:100]
+    best_authorities = sorted(((v, k) for k, v in authorities.iteritems()), reverse=True)[:100]
+    best_pageranks = sorted(((v, k) for k, v in page_ranks.iteritems()), reverse=True)[:100]
+
+    with open('hubs.txt', 'w') as f:
+        f.write('\n'.join('{0:.6f} {1}'.format(*hub) for hub in best_hubs))
+    with open('auth.txt', 'w') as f:
+        f.write('\n'.join('{0:.6f} {1}'.format(*auth) for auth in best_authorities))
+    with open('pr.txt', 'w') as f:
+        f.write('\n'.join('{0:.6f} {1}'.format(*pr) for pr in best_pageranks))
+    #print best_hubs
+    #print best_authorities
+    #print best_pagerank
+    #print
+
+    # These are pretty interesting ("isda"):
+    #for a, b in itertools.product(best_pagerank, best_pagerank):
+    #    word_cloud = counter(word 
+    #        for message_id in filter(bool, messages[a][b])
+    #        for word in message_subjects[message_id]
+    #        if word not in stopwords
+    #    )
+    #    if word_cloud:
+    #        print a, b
+    #        print sorted(word_cloud, key=word_cloud.get, reverse=True)[:25]
+    #        __ = raw_input()
+
+    #for a, b in itertools.product(best_pagerank, best_pagerank):
+    #    word_cloud = counter(word 
+    #        for message_id in filter(bool, messages[a][b])
+    #        for word in message_subjects[message_id]
+    #        if word not in stopwords
+    #    )
+    #    if word_cloud:
+    #        print a, b
+    #        print sorted(word_cloud, key=lambda x: word_cloud.get(x) * idf[x], reverse=True)[:25]
+    #        __ = raw_input()
 
 
 
