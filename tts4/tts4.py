@@ -4,6 +4,10 @@ import operator
 import copy
 import math
 import re
+import heapq
+import networkx as nx
+import matplotlib.pyplot as plt
+from nltk.corpus import stopwords as nltk_stopwords
 
 
 def counter(items):
@@ -51,7 +55,7 @@ def main():
                 messages_mentioning[token].add(message_id)
     num_messages = len(message_subjects)
     idf = dict((token, math.log(num_messages/count)) for token, count in token_counts.iteritems())
-    stopwords = frozenset(sorted(idf.iterkeys(), key=idf.get)[:50])
+    stopwords = frozenset(sorted(idf.iterkeys(), key=idf.get)[:50]) | frozenset(nltk_stopwords.words('english'))
 
     num_nodes = float(len(emails))
 
@@ -126,11 +130,9 @@ def main():
         f.write('\n'.join('{0:.6f} {1}'.format(*pr) for pr in best_pageranks))
 
     # Get query from terms most used when high-pageranked people talk to eachother
-    best_hubs = [email for __, email in best_hubs]
-    best_authorities = [email for __, email in best_authorities]
-    best_pageranks = [email for __, email in best_pageranks]
-    top_ten_pageranks = frozenset(best_pageranks[:10])
-    print top_ten_pageranks
+    top_ten_pageranks = [email for __, email in best_pageranks][:10]
+    print "top ten pageranks", top_ten_pageranks
+    print
     meta_wordcloud = defaultdict(int)
     for a, b in itertools.product(top_ten_pageranks, top_ten_pageranks):
         word_cloud = counter(word 
@@ -141,10 +143,8 @@ def main():
         if word_cloud:
             for word, count in word_cloud.iteritems():
                 meta_wordcloud[word] += count
-    most_important_words = dict(sorted(meta_wordcloud.iteritems(), key=operator.itemgetter(1), reverse=True)[:10])
-    print most_important_words
-    query = dict((k, v * idf[k]) for k, v in most_important_words.iteritems())
-    print
+    most_important_words = dict(sorted(meta_wordcloud.iteritems(), key=operator.itemgetter(1), reverse=True)[:50])
+    query = dict((word, idf[word]) for word in most_important_words)
 
     # Each "document" is all words sent to or from an email address
     documents = defaultdict(lambda: defaultdict(int))
@@ -156,8 +156,14 @@ def main():
                 document_lengths[email] += 1
     average_document_length = sum(document_lengths.itervalues()) / float(len(document_lengths))
 
-    # Perform pagerank-weighted tf-idf
-    best_emails = sorted(
+    # Perform page rank-weighted tf-idf
+    interesting_email_counts = counter(
+        email
+        for word in most_important_words
+        for m in messages_mentioning[word]
+        for email in message_emails[m]
+    )
+    best_emails = heapq.nlargest(10,
         emails,
         key=(
             lambda email: sum(
@@ -168,32 +174,46 @@ def main():
                 set(documents[email]) & set(query)
             ) * page_ranks[email]
         ),
-        reverse=True
     )
-    print best_emails.index('greg.whalley@enron.com')
-    best_emails = frozenset(best_emails[:10])
 
     print 'key figures', best_emails
-    print 'key figures not in top 10 PR', best_emails - top_ten_pageranks
+    print
+    print 'key figures not in top 10 PR', set(best_emails) - set(top_ten_pageranks)
+    print
+    print 'conversely', set(top_ten_pageranks) - set(best_emails)
     print
 
-    interesting_email_counts = counter(
-        email
-        for word in most_important_words
-        for m in messages_mentioning[word]
-        for email in message_emails[m]
-    )
-    interesting_email_counts = dict(
-        (email, 
-         float(count) 
-         * page_ranks[email]
-         / (math.sqrt(num_out_connections[email] + from_email_connections[email]) or float('inf'))
-        )
-        for email, count
-        in interesting_email_counts.iteritems()
-    )
-    print "old method", sorted(interesting_email_counts, key=interesting_email_counts.get, reverse=True)[:10]
-
+    title = lambda email: email.replace('@enron.com', '').replace('.', ' ').title()
+    graph = nx.DiGraph()
+    edge_labels = {}
+    for node in best_emails:
+        graph.add_node(title(node))
+    for node_a, node_b in itertools.combinations(best_emails, 2):
+        a_to_b = messages[node_a][node_b]
+        b_to_a = messages[node_b][node_a]
+        if a_to_b:
+            graph.add_edge(title(node_a), title(node_b), weight=math.log(connections[node_a][node_b]))
+        if b_to_a:
+            graph.add_edge(title(node_b), title(node_a), weight=math.log(connections[node_b][node_a]))
+        all_messages = [message_subjects[message_id] for message_id in a_to_b | b_to_a]
+        if all_messages:
+            token_counts = counter(
+                token 
+                for message in all_messages 
+                for token in message 
+                if token not in stopwords 
+                and not token.isdigit()
+            )
+            edge_label = ' '.join(heapq.nlargest(3, token_counts, key=token_counts.get))
+            edge_labels[(title(node_a), title(node_b))] = edge_label
+    for x in (10, 100, 1000, 10000):
+        print x
+        pos = nx.spring_layout(graph, iterations=x)
+        nx.draw_networkx_nodes(graph, pos, node_color='#764F2E', alpha=0.5, linewidths=1)
+        nx.draw_networkx_edges(graph, pos, edge_color='#E7DECF')
+        nx.draw_networkx_labels(graph, pos, font_weight='demibold')
+        nx.draw_networkx_edge_labels(graph, pos, edge_labels, label_pos=0.3)
+        plt.show()
 
 
 if __name__ == "__main__":
