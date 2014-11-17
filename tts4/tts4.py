@@ -183,6 +183,7 @@ def main():
     print 'conversely', set(top_ten_pageranks) - set(best_emails)
     print
 
+    # Visualization
     title = lambda email: email.replace('@enron.com', '').replace('.', ' ').title()
     graph = nx.DiGraph()
     edge_labels = {}
@@ -206,10 +207,10 @@ def main():
             )
             edge_label = ' '.join(heapq.nlargest(3, token_counts, key=token_counts.get))
             edge_labels[(title(node_a), title(node_b))] = edge_label
-    for x in (10, 100, 1000, 10000):
+    for x in (0, 1, 2, 3, 5, 8, 10, 100, 1000, 10000):  # Go through a few levels of iteration to see what looks nicest
         print x
         pos = nx.spring_layout(graph, iterations=x)
-        nx.draw_networkx_nodes(graph, pos, node_color='#764F2E', alpha=0.5, linewidths=1)
+        nx.draw_networkx_nodes(graph, pos, node_color='#764F2E', alpha=0.5)
         nx.draw_networkx_edges(graph, pos, edge_color='#E7DECF')
         nx.draw_networkx_labels(graph, pos, font_weight='demibold')
         nx.draw_networkx_edge_labels(graph, pos, edge_labels, label_pos=0.3)
